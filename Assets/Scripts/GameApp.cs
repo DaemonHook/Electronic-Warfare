@@ -2,12 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// 视图全局管理器
-/// </summary>
+
 public static class ViewManager
 {
-    // view预制体的缓存
+    
     static Dictionary<string, GameObject> viewCache = new Dictionary<string, GameObject>();
     
     static ViewManager()
