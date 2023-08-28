@@ -7,7 +7,7 @@ public class UnitData
 {
 
     string name;    // 名称
-    int hp, mp;     // 血量，行动点
+    //int hp, mp;     // 血量，行动点
     string orientation; // 朝向
 }
 
@@ -17,5 +17,6 @@ public class UnitData
 [SerializeField]
 public class MapData
 {
-    
+    public int Version;
+
 }
