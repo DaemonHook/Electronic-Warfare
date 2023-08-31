@@ -1,13 +1,21 @@
-﻿using System;
+﻿/*
+ * file: MapLoader.cs
+ * author: D.H.
+ * feature: Tiled地图读取
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.XPath;
 using UnityEngine;
 
 public class MapLoader
 {
-    
+    #region tiled相关常数
     public readonly int FILP_OFFSET = 1073741824;   //tiled的翻转常数
     public readonly int HORIZONTAL = 1;             //水平翻转
     public readonly int VERTICAL = 2;               //垂直翻转
@@ -21,12 +29,48 @@ public class MapLoader
      * 2：垂直
      * 3：水平 + 垂直
      */
+    #endregion
 
-    public MapLoader(string baseUrl = "SamplePackage/Tiled")
+    #region 内部变量
+    string mapRawText;
+    XmlDocument xmlDoc;
+    int width, height;
+
+    /// <summary>
+    /// 图层内块的表示
+    /// </summary>
+    struct InnerBlock
     {
-        var maps = Resources.LoadAll<TextAsset>(baseUrl);
-
+        /// <summary>
+        /// 图块集名称
+        /// </summary>
+        public string tilesetName;
+        /// <summary>
+        /// 图块集内的id
+        /// </summary>
+        public int id;
     }
 
-    
+    class TileSet
+    {
+        public int firstgid;
+        
+    }
+
+    Dictionary<string, >
+    #endregion
+
+    public MapLoader(string packageName = "SamplePackage", string mapName = "sample")
+    {
+        mapRawText = Resources.Load<TextAsset>($"{packageName}/Maps/{mapName}").text;
+        xmlDoc = new XmlDocument();
+        xmlDoc.LoadXml(mapRawText);
+    }
+
+    #region 接口
+    public int Width { get { return width; } }
+    public int Height { get { return height; } }
+
+
+    #endregion
 }
