@@ -57,15 +57,15 @@ public class MapLoader
         
     }
 
-    Dictionary<string, >
-    #endregion
+    //Dictionary<string, >
+    //#endregion
 
-    public MapLoader(string packageName = "SamplePackage", string mapName = "sample")
-    {
-        mapRawText = Resources.Load<TextAsset>($"{packageName}/Maps/{mapName}").text;
-        xmlDoc = new XmlDocument();
-        xmlDoc.LoadXml(mapRawText);
-    }
+    //public MapLoader(string packageName = "SamplePackage", string mapName = "sample")
+    //{
+    //    mapRawText = Resources.Load<TextAsset>($"{packageName}/Maps/{mapName}").text;
+    //    xmlDoc = new XmlDocument();
+    //    xmlDoc.LoadXml(mapRawText);
+    //}
 
     #region 接口
     public int Width { get { return width; } }

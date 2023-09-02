@@ -1,0 +1,9 @@
+﻿
+# This file is the top-most EditorConfig file
+root = true
+
+# All Files
+[*]
+end_of_line = lf                    # 文件换行符是 linux 的 `\n`
+charset = utf-8                     # 文件编码是 utf-8
+
