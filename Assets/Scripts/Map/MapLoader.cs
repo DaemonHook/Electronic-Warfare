@@ -1,4 +1,4 @@
-﻿/*
+/*
  * file: MapLoader.cs
  * author: D.H.
  * feature: Tiled地图读取
@@ -62,4 +62,9 @@ public class MapLoader
     public int Width { get { return width; } }
     public int Height { get { return height; } }
     #endregion
+
+    public MapLoader(string url)
+    {
+
+    }
 }
