@@ -35,6 +35,7 @@ public class MapLoader
     string mapRawText;
     XmlDocument xmlDoc;
     int width, height;
+    #endregion
 
     /// <summary>
     /// 图层内块的表示
@@ -54,23 +55,11 @@ public class MapLoader
     class TileSet
     {
         public int firstgid;
-        
+
     }
-
-    //Dictionary<string, >
-    //#endregion
-
-    //public MapLoader(string packageName = "SamplePackage", string mapName = "sample")
-    //{
-    //    mapRawText = Resources.Load<TextAsset>($"{packageName}/Maps/{mapName}").text;
-    //    xmlDoc = new XmlDocument();
-    //    xmlDoc.LoadXml(mapRawText);
-    //}
 
     #region 接口
     public int Width { get { return width; } }
     public int Height { get { return height; } }
-
-
     #endregion
 }
