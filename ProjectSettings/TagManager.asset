@@ -41,3 +41,33 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Terrain
+    uniqueID: 479268039
+    locked: 0
+  - name: Object
+    uniqueID: 3083242297
+    locked: 0
+  - name: Unit
+    uniqueID: 3204267451
+    locked: 0
+  - name: Control
+    uniqueID: 1366128813
+    locked: 0
+  - name: New Layer 5
+    uniqueID: 961646763
+    locked: 0
+  - name: New Layer 6
+    uniqueID: 4160958103
+    locked: 0
+  - name: New Layer 7
+    uniqueID: 408551321
+    locked: 0
+  - name: New Layer 8
+    uniqueID: 1224510325
+    locked: 0
+  - name: New Layer 9
+    uniqueID: 777359215
+    locked: 0
+  - name: New Layer 10
+    uniqueID: 2166241467
+    locked: 0
