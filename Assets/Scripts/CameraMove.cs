@@ -27,6 +27,10 @@ public class CameraMove : MonoBehaviour
     [Header("移动时间")]
     public float duration;
 
+    public bool Indrag { get; private set; } = false;
+
+    public bool Moveable { get; set; } = true;
+
     private void Awake()
     {
         thisCamera = GetComponent<Camera>();
@@ -42,7 +46,7 @@ public class CameraMove : MonoBehaviour
     {
         Vector3 initialMousePosition = GetMousePositionInWorld();
         //Debug.Log($"originPosition: {initialMousePosition}");
-        while (Input.GetMouseButton(0))
+        while (Input.GetMouseButton(0) && Moveable)
         {
             //Debug.Log("Check Drag!");
             Vector3 currentMousePosition = GetMousePositionInWorld();
@@ -51,7 +55,11 @@ public class CameraMove : MonoBehaviour
             travel.z = 0;
             if (travel.magnitude / transform.GetComponent<Camera>().orthographicSize > sensitivity)
             {
+                Indrag = true;
                 CameraMoveWithTolerance(transform.position - travel);
+            } else
+            {
+                Indrag = false;
             }
             yield return null;
         }
@@ -71,5 +79,13 @@ public class CameraMove : MonoBehaviour
         upRight = new Vector2Int(mapSize.x, mapSize.y);
         //Debug.Log($"leftDown: {leftDown}, upRight: {upRight}");
         transform.position = new Vector3(originPos.x - 0.5f, originPos.y - 0.5f, -10.0f);
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButton(0) && !Indrag && Moveable)
+        {
+            StartCoroutine(DragMoveCoroutine());
+        }
     }
 }
