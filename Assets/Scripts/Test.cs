@@ -9,12 +9,10 @@ public class Test : MonoBehaviour
     {
         var text = Resources.Load<TextAsset>("SamplePackage/Maps/sampleMap.tmx");
         var tileMap = new TiledMap(text.text);
-        
     }
 
     // Update is called once per frame
     void Update()
     {
-
     }
 }
