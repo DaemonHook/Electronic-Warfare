@@ -1,43 +1,16 @@
 /*
- * file: MapData.cs
+ * file: Package.cs
  * author: D.H.
- * feature: 地图数据结构
+ * feature: 外部数据
  */
 
 using System;
-using JetBrains.Annotations;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http.Headers;
+using System.Reflection;
+using System.Text;
 using System.Xml;
-using System.Xml.XPath;
-using UnityEditor.Rendering.Universal;
 using UnityEngine;
-
-/// <summary>
-/// 在tileset的Define文件中对瓦片的定义
-/// </summary>
-public class BlockDefine
-{
-    public int id;
-
-    public string sprite_name,
-        type,
-        team,
-        name,
-        hp,
-        mp,
-        armor,
-        sight,
-        range,
-        atk_to_light,
-        atk_to_heavy,
-        terrain_type,
-        building_type,
-        cost,
-        special;
-}
 
 public enum Layers
 {
@@ -205,7 +178,6 @@ public class TiledMap
 public enum TileType
 {
     Terrain,
-    Object,
     Unit
 }
 
@@ -222,9 +194,14 @@ public class TileSet
     /// <param name="id">id</param>
     /// <param name="type">tile类型</param>
     /// <param name="spriteName">sprite名称</param>
-    public void AddTile(int id, TileType type, string spriteName)
+    private void AddTile(int id, TileType type, string spriteName)
     {
         dic.Add(id, (type, spriteName));
+    }
+
+    public List<int> GetValidIds()
+    {
+        return new List<int>(dic.Keys);
     }
 
     public TileType GetTileType(int id)
@@ -237,9 +214,32 @@ public class TileSet
         return dic[id].Item2;
     }
 
-    public TileSet()
+    /// <summary>
+    /// 根据CSVDocument的行创建TileSet
+    /// </summary>
+    /// <param name="csvDocumentLines"></param>
+    public TileSet(List<Dictionary<string, string>> csvDocumentLines)
     {
         dic = new Dictionary<int, (TileType, string)>();
+        foreach (var line in csvDocumentLines)
+        {
+            int id = int.Parse(line["id"]);
+            TileType type = Enum.Parse<TileType>(line["type"], true);
+            string spriteName = line["tile_name"];
+            AddTile(id, type, spriteName);
+        }
+    }
+
+    public override string ToString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.Append("tileSet:\n");
+        foreach (var tile in dic)
+        {
+            sb.Append($"{tile.Key}\t{tile.Value.Item1}\t{tile.Value.Item2}\n");
+        }
+
+        return sb.ToString();
     }
 }
 
@@ -250,8 +250,10 @@ public enum TerrainType
 {
     Ground, //平地
     Water, //水面
+    Hill, //山地
     Road, //公路
-    Wood //林地
+    Wood, //林地
+    Block, //障碍
 }
 
 
@@ -267,6 +269,7 @@ public enum UnitType
 /// <summary>
 /// 攻击类型
 /// </summary>
+[Serializable]
 public enum AttackType
 {
     None,
@@ -277,7 +280,8 @@ public enum AttackType
 /// <summary>
 /// 全局单位数据定义 定义在Unit.csv中
 /// </summary>
-public class UnitDefine
+[Serializable]
+public class UnitProperty
 {
     public int team; //队伍
     public string name; //名称（游戏内）
@@ -289,7 +293,7 @@ public class UnitDefine
     //攻击类型
     public AttackType attackType;
 
-    public UnitDefine(int team, string name, UnitType type, int hp, int mp, int sight, int atkRange, int atk,
+    public UnitProperty(int team, string name, UnitType type, int hp, int mp, int sight, int atkRange, int atk,
         AttackType attackType)
     {
         this.team = team;
@@ -307,7 +311,7 @@ public class UnitDefine
     /// 从配置文件的一行生成一个UnitDefine
     /// </summary>
     /// <param name="line">CSVDocument的一行</param>
-    public static UnitDefine LoadUnitDefine(Dictionary<string, string> line)
+    public static UnitProperty LoadUnitDefine(Dictionary<string, string> line)
     {
         int team = int.Parse(line["team"]);
         string name = line["name"];
@@ -318,7 +322,27 @@ public class UnitDefine
         int atkRange = int.Parse(line["range"]);
         int atk = int.Parse(line["atk"]);
         AttackType attackType = Enum.Parse<AttackType>(line["attack_type"]);
-        return new UnitDefine(team, name, utype, hp, mp, sight, atkRange, atk, attackType);
+        return new UnitProperty(team, name, utype, hp, mp, sight, atkRange, atk, attackType);
+    }
+
+    public UnitProperty Clone()
+    {
+        string json = JsonUtility.ToJson(this);
+        return JsonUtility.FromJson<UnitProperty>(json);
+    }
+
+    public override string ToString()
+    {
+        Type udType = this.GetType();
+        StringBuilder sb = new StringBuilder();
+        FieldInfo[] fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        foreach (FieldInfo field in fields)
+        {
+            object fieldValue = field.GetValue(this);
+            sb.Append($"{field.Name}: {fieldValue}\t");
+        }
+
+        return sb.ToString();
     }
 }
 
@@ -329,15 +353,126 @@ public class UnitDefine
 /// </summary>
 public class Package
 {
-    public string Name { get; private set; }
-    public Dictionary<int, GameObject> Prefabs;
-    public Dictionary<int, UnitDefine> UnitDefines;
-    public Dictionary<int, TerrainType> TerrainTypes;
+    private string PackageName { get; set; }
 
-    public Package(string name)
+    private Dictionary<int, GameObject> Prefabs;
+
+    /// <summary>
+    /// 瓦片定义集合
+    /// </summary>
+    private TileSet TileSet;
+
+    /// <summary>
+    /// 定义的单位属性
+    /// </summary>
+    public Dictionary<int, UnitProperty> UnitProperties { get; private set; }
+
+    /// <summary>
+    /// 定义的地形属性
+    /// </summary>
+    public Dictionary<int, TerrainType> TerrainTypes { get; private set; }
+
+    /// <summary>
+    /// 定义的单位属性
+    /// </summary>
+    public Dictionary<int, UnitProperty> UnitDefine { get; private set; }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    public Dictionary<string, TiledMap> Maps { get; private set; }
+    
+    /// <summary>
+    /// 包内所有texture路径
+    /// </summary>
+    private string TexturePath => $"{PackageName}/Tiles";
+
+    /// <summary>
+    /// 包内所有prefab路径
+    /// </summary>
+    private string PrefabsPath => $"{PackageName}/Prefabs";
+
+    /// <summary>
+    /// tiles定义文件路径
+    /// </summary>
+    private string TilesDefinePath => $"{PackageName}/Defines/Tiles";
+
+    /// <summary>
+    /// 单位定义文件路径
+    /// </summary>
+    private string UnitDefinePath => $"{PackageName}/Defines/UnitDef";
+
+    /// <summary>
+    /// 地形定义文件路径
+    /// </summary>
+    private string TerrainDefinePath => $"{PackageName}/Defines/TerrainDef";
+
+    private string MapPath => $"{PackageName}/Maps";
+    
+    public Package(string packageName)
     {
-        Name = name;
+        PackageName = packageName;
+
+        //读取tileSet
+        CSVDocument tilesDefCSV = new CSVDocument(Resources.Load<TextAsset>(TilesDefinePath).text);
+        TileSet = new TileSet(tilesDefCSV.Data);
         Prefabs = new Dictionary<int, GameObject>();
-        UnitDefines = new Dictionary<int, UnitDefine>();
+        foreach (var id in TileSet.GetValidIds())
+        {
+            string name = TileSet.GetSpriteName(id);
+            GameObject prefab = Resources.Load<GameObject>($"{PrefabsPath}/{name}");
+            if (prefab != null)
+            {
+                Prefabs.Add(id, prefab);
+            }
+            else
+            {
+                Sprite sprite = Resources.Load<Sprite>($"{TexturePath}/{name}");
+                if (sprite == null)
+                {
+                    Debug.LogError($"texture2d {name} not exist!");
+                }
+
+                GameObject go = new GameObject(name);
+                go.transform.SetParent(GameObject.Find("Manager/Prefabs").transform);
+                go.SetActive(false);
+                //将texture作为sprite
+                var renderer = go.AddComponent<SpriteRenderer>();
+                renderer.sprite = sprite;
+                Prefabs.Add(id, go);
+            }
+        }
+
+        Debug.Log("Tiles load done.");
+
+        //读取单位设置
+        UnitProperties = new Dictionary<int, UnitProperty>();
+        CSVDocument unitDefCSV = new CSVDocument(Resources.Load<TextAsset>(UnitDefinePath).text);
+        foreach (var line in unitDefCSV.Data)
+        {
+            int id = int.Parse(line["id"]);
+            UnitProperties.Add(id, UnitProperty.LoadUnitDefine(line));
+        }
+        Debug.Log("UnitDefines load done.");
+
+        TerrainTypes = new Dictionary<int, TerrainType>();
+        CSVDocument terrainDefCSV = new CSVDocument(Resources.Load<TextAsset>(TerrainDefinePath).text);
+        foreach (var line in terrainDefCSV.Data)
+        {
+            int id = int.Parse(line["id"]);
+            TerrainType type = Enum.Parse<TerrainType>(line["terrain_type"], true);
+            TerrainTypes.Add(id, type);
+        }
+
+        Debug.Log("terrain loading done");
+
+        Maps = new Dictionary<string, TiledMap>();
+        var mapTexts = Resources.LoadAll<TextAsset>(MapPath);
+        foreach (var mapText in mapTexts)
+        {
+            Maps.Add(Path.GetFileNameWithoutExtension(mapText.name), new TiledMap(mapText.text));
+        }
+        Debug.Log("maps load done.");
+        
     }
 }

@@ -10,8 +10,10 @@ using Unity.VisualScripting;
 using UnityEngine;
 using DG.Tweening;
 
-
-public class CameraMove : MonoBehaviour
+/// <summary>
+/// 可移动的相机
+/// </summary>
+public class MovableCamera : MonoBehaviour
 {
     private Camera thisCamera;
 

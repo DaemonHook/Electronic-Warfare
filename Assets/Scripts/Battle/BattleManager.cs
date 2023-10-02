@@ -3,18 +3,34 @@
  * feature: 战斗管理器
  */
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.PlayerLoop;
+using UnityEngine.Serialization;
+
+public static class LayerOrders
+{
+    public static int
+        Terrain = 0,
+        Object = 10,
+        Unit = 20,
+        TouchPad = 30;
+}
 
 public class BattleManager : MonoBehaviour
 {
-    public int RowSize, ColSize; //战场大小
+    public string PackageName;
+    public string MapName;
+
+    public TiledMap Map { get; set; }
+    [FormerlySerializedAs("RowSize")] public int Height; //战场大小
+    [FormerlySerializedAs("ColSize")] public int Width; //战场大小
 
     public GameObject TouchPad; //触控板的prefab
+    public Package Package { get; private set; } //当前加载的package
+
+    public TerrainTile[,] Terrains;
+    public ObjectTile[,] Objects;
+    public UnitTile[,] Units;
 
     private void OnTouchpadClicked(int row, int col)
     {
@@ -23,12 +39,14 @@ public class BattleManager : MonoBehaviour
 
     private void CreateTouchPads()
     {
-        for (int i = 0; i < RowSize; i++)
+        for (int i = 0; i < Height; i++)
         {
-            for (int j = 0; j < ColSize; j++)
+            for (int j = 0; j < Width; j++)
             {
                 var go = GameObject.Instantiate(TouchPad, new Vector3((float)i, (float)j, 0f), Quaternion.identity,
                     transform);
+                go.transform.SetParent(GameObject.Find("Manager/TouchPads").transform);
+                go.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.TouchPad;
                 int ti = i, tj = j;
                 go.GetComponent<TouchPad>().Init(
                     (PointerEventData ped) => { OnTouchpadClicked(ti, tj); },
@@ -39,16 +57,56 @@ public class BattleManager : MonoBehaviour
 
     private void Awake()
     {
+        Init();
+    }
+
+    public void Init()
+    {
+        LoadPackage();
+        LoadMap();
+        ApplySettings();
         CreateTouchPads();
+        CreateBattleField();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void LoadMap()
     {
+        Map = Package.Maps[MapName];
+        Height = Map.Height;
+        Width = Map.Width;
     }
 
-    // Update is called once per frame
-    void Update()
+
+    private void CreateBattleField()
     {
+        CreateTerrains();
+        CreateObjects();
+        CreateUnits();
+    }
+
+    private void LoadPackage()
+    {
+        Package = new Package(PackageName);
+    }
+
+    private void ApplySettings()
+    {
+        // throw new System.NotImplementedException();
+    }
+
+    private void CreateUnits()
+    {
+        // throw new System.NotImplementedException();
+    }
+
+    private void CreateObjects()
+    {
+        // throw new System.NotImplementedException();
+    }
+
+    private void CreateTerrains()
+    {
+        Terrains = new TerrainTile[Width, Height];
+        
     }
 }

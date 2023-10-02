@@ -12,6 +12,17 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
+/// 可以进行的操作状态
+/// </summary>
+public enum TouchState
+{
+    None,           //无（或选择）
+    Moveable,       //可移动  
+    Attackable,     //可攻击
+    Buildable,      //可建造
+}
+
+/// <summary>
 /// 触控板
 /// </summary>
 public class TouchPad : MonoBehaviour, IPointerClickHandler
@@ -30,5 +41,17 @@ public class TouchPad : MonoBehaviour, IPointerClickHandler
         Debug.Log($"touchpad at {(Row, Col)} is clicked!");
         callbackOnClick?.Invoke(eventData);
         // throw new NotImplementedException();
+    }
+
+    public void ChangeState(TouchState state)
+    {
+        switch (state)
+        {
+            case TouchState.Attackable:
+                break;
+            case TouchState.None:
+            default:
+                break;
+        }
     }
 }

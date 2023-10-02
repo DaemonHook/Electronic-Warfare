@@ -6,3 +6,5 @@
 - Tilemap：存储图像文件
 - Tiles：存储sprites
 - Blocks：图块的定义
+
+逻辑上仍有问题
