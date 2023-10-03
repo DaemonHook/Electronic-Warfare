@@ -3,6 +3,8 @@
  * feature: 战斗管理器
  */
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
@@ -29,7 +31,7 @@ public class BattleManager : MonoBehaviour
     public Package Package { get; private set; } //当前加载的package
 
     public TerrainTile[,] Terrains;
-    public ObjectTile[,] Objects;
+    public TerrainTile[,] Objects; //terrain层和object层都是terrainTile
     public UnitTile[,] Units;
 
     private void OnTouchpadClicked(int row, int col)
@@ -57,10 +59,14 @@ public class BattleManager : MonoBehaviour
 
     private void Awake()
     {
+    }
+
+    private void Start()
+    {
         Init();
     }
 
-    public void Init()
+    private void Init()
     {
         LoadPackage();
         LoadMap();
@@ -74,8 +80,8 @@ public class BattleManager : MonoBehaviour
         Map = Package.Maps[MapName];
         Height = Map.Height;
         Width = Map.Width;
+        Debug.Log($"map height: {Height}, width: {Width}");
     }
-
 
     private void CreateBattleField()
     {
@@ -91,22 +97,66 @@ public class BattleManager : MonoBehaviour
 
     private void ApplySettings()
     {
-        // throw new System.NotImplementedException();
+        MovableCamera.Instance.Init(Width, Height, Width / 2, Height / 2);
     }
 
     private void CreateUnits()
     {
-        // throw new System.NotImplementedException();
+        Units = new UnitTile[Width, Height];
+        var unitIds = Map.Unit;
+        TeamCount = 0;
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                if (unitIds[i, j] != null)
+                {
+                    var prefab = Package.Prefabs[unitIds[i, j].tileId];
+                    var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
+                    Units[i, j] = go.GetComponent<UnitTile>();
+                }
+            }
+        }
     }
 
     private void CreateObjects()
     {
-        // throw new System.NotImplementedException();
+        Objects = new TerrainTile[Width, Height];
+        var objectIds = Map.Object;
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                if (objectIds[i, j] != null)
+                {
+                    var prefab = Package.Prefabs[objectIds[i, j].tileId];
+                    var go = Factory.Instance.ObjectFactory(prefab, i, j, Package.TerrainTypes[objectIds[i, j].tileId]);
+                    Objects[i, j] = go.GetComponent<TerrainTile>();
+                }
+            }
+        }
     }
 
     private void CreateTerrains()
     {
         Terrains = new TerrainTile[Width, Height];
-        
+        var terrainIds = Map.Terrain;
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                if (terrainIds[i, j] != null)
+                {
+                    var prefab = Package.Prefabs[terrainIds[i, j].tileId];
+                    var go = Factory.Instance.TerrainFactory(prefab, i, j,
+                        Package.TerrainTypes[terrainIds[i, j].tileId]);
+                    Terrains[i, j] = go.GetComponent<TerrainTile>();
+                }
+            }
+        }
     }
+
+    public int TeamCount;
+
+    public Dictionary<int, List<UnitTile>> TeamUnits;
 }

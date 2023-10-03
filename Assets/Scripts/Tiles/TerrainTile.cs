@@ -8,6 +8,5 @@ public class TerrainTile : GameTile
     {
         Init(x, y);
         TerrainType = terrainType;
-        GetComponent<SpriteRenderer>().sortingLayerID = LayerOrders.Terrain;
     }
 }

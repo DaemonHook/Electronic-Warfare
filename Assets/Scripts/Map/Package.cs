@@ -249,11 +249,11 @@ public class TileSet
 public enum TerrainType
 {
     Ground, //平地
-    Water, //水面
-    Hill, //山地
-    Road, //公路
-    Wood, //林地
-    Block, //障碍
+    Water,  //水面
+    Hill,   //山地
+    Road,   //公路
+    Wood,   //林地
+    Block,  //障碍
 }
 
 
@@ -355,7 +355,7 @@ public class Package
 {
     private string PackageName { get; set; }
 
-    private Dictionary<int, GameObject> Prefabs;
+    public Dictionary<int, GameObject> Prefabs { get; private set; }
 
     /// <summary>
     /// 瓦片定义集合
@@ -372,11 +372,6 @@ public class Package
     /// </summary>
     public Dictionary<int, TerrainType> TerrainTypes { get; private set; }
 
-    /// <summary>
-    /// 定义的单位属性
-    /// </summary>
-    public Dictionary<int, UnitProperty> UnitDefine { get; private set; }
-    
     /// <summary>
     /// 
     /// </summary>

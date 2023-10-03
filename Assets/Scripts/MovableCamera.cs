@@ -17,25 +17,30 @@ public class MovableCamera : MonoBehaviour
 {
     private Camera thisCamera;
 
-    [Header("相机移动范围")]
-    public Vector2 leftDown, upRight;
+    public static MovableCamera Instance;
 
-    [Header("移动容差")]
-    public float tolerance;
+    [Header("相机移动范围")] public Vector2 leftDown, upRight;
 
-    [Header("移动灵敏度")]
-    public float sensitivity;
+    [Header("移动容差")] public float tolerance;
 
-    [Header("移动时间")]
-    public float duration;
+    [Header("移动灵敏度")] public float sensitivity;
+
+    [Header("移动时间")] public float duration;
+
+    private IEnumerator _enumerator;
 
     public bool Indrag { get; private set; } = false;
 
     public bool Moveable { get; set; } = true;
 
+    private void Start()
+    {
+    }
+
     private void Awake()
     {
         thisCamera = GetComponent<Camera>();
+        Instance = this;
     }
 
     Vector3 GetMousePositionInWorld()
@@ -44,10 +49,10 @@ public class MovableCamera : MonoBehaviour
         return thisCamera.ScreenToWorldPoint(screenPosition);
     }
 
-    public IEnumerator DragMoveCoroutine()
+    private IEnumerator DragMoveCoroutine()
     {
         Vector3 initialMousePosition = GetMousePositionInWorld();
-        //Debug.Log($"originPosition: {initialMousePosition}");
+        Indrag = true;
         while (Input.GetMouseButton(0) && Moveable)
         {
             //Debug.Log("Check Drag!");
@@ -57,17 +62,15 @@ public class MovableCamera : MonoBehaviour
             travel.z = 0;
             if (travel.magnitude / transform.GetComponent<Camera>().orthographicSize > sensitivity)
             {
-                Indrag = true;
                 CameraMoveWithTolerance(transform.position - travel);
-            } else
-            {
-                Indrag = false;
             }
             yield return null;
         }
+
+        Indrag = false;
     }
 
-    public void CameraMoveWithTolerance(Vector3 target)
+    private void CameraMoveWithTolerance(Vector3 target)
     {
         target.x = Mathf.Clamp(target.x, leftDown.x + tolerance, upRight.x - tolerance);
         target.y = Mathf.Clamp(target.y, leftDown.y + tolerance, upRight.y - tolerance);
@@ -75,12 +78,11 @@ public class MovableCamera : MonoBehaviour
         transform.DOMove(target, duration);
     }
 
-    public void Init(Vector2Int mapSize, Vector2Int originPos)
+    public void Init(int width, int height, int startX, int startY)
     {
-        leftDown = new Vector2Int(0, 0);
-        upRight = new Vector2Int(mapSize.x, mapSize.y);
-        //Debug.Log($"leftDown: {leftDown}, upRight: {upRight}");
-        transform.position = new Vector3(originPos.x - 0.5f, originPos.y - 0.5f, -10.0f);
+        leftDown = new Vector2(0, 0);
+        upRight = new Vector2(width, height);
+        transform.position = new Vector3(startX, startY, -10);
     }
 
     private void Update()
