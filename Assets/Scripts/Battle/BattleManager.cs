@@ -20,6 +20,8 @@ public static class LayerOrders
 
 public class BattleManager : MonoBehaviour
 {
+    public static BattleManager Instance;
+
     public string PackageName;
     public string MapName;
 
@@ -36,14 +38,14 @@ public class BattleManager : MonoBehaviour
 
     private void OnTouchpadClicked(int row, int col)
     {
-        Debug.Log($"{row}, {col} clicked!");
+        AddUIEvent(new UIEvent(UIEventType.Click, (row, col)));
     }
 
     private void CreateTouchPads()
     {
-        for (int i = 0; i < Height; i++)
+        for (int i = 0; i < Width; i++)
         {
-            for (int j = 0; j < Width; j++)
+            for (int j = 0; j < Height; j++)
             {
                 var go = GameObject.Instantiate(TouchPad, new Vector3((float)i, (float)j, 0f), Quaternion.identity,
                     transform);
@@ -59,6 +61,7 @@ public class BattleManager : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
     }
 
     private void Start()
@@ -105,15 +108,26 @@ public class BattleManager : MonoBehaviour
         Units = new UnitTile[Width, Height];
         var unitIds = Map.Unit;
         TeamCount = 0;
+        TeamUnits = new Dictionary<int, List<UnitTile>>();
         for (int i = 0; i < Width; i++)
         {
             for (int j = 0; j < Height; j++)
             {
-                if (unitIds[i, j] != null)
+                if (unitIds[i, j] == null) continue;
+                var prefab = Package.Prefabs[unitIds[i, j].tileId];
+                var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
+                Units[i, j] = go.GetComponent<UnitTile>();
+                int t;
+                if ((t = Units[i, j].CurrentProperty.team) != -1)
                 {
-                    var prefab = Package.Prefabs[unitIds[i, j].tileId];
-                    var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
-                    Units[i, j] = go.GetComponent<UnitTile>();
+                    if (TeamUnits.ContainsKey(Units[i, j].CurrentProperty.team))
+                    {
+                        TeamUnits[i].Add(Units[i, j]);
+                    }
+                }
+                else
+                {
+                    TeamUnits.Add(t, new List<UnitTile> { Units[i, j] });
                 }
             }
         }
@@ -159,4 +173,71 @@ public class BattleManager : MonoBehaviour
     public int TeamCount;
 
     public Dictionary<int, List<UnitTile>> TeamUnits;
+
+
+    #region 事件处理
+
+    private Queue<UIEvent> uiEventQueue = new Queue<UIEvent>();
+    private Queue<BattleEvent> battleEventQueue = new Queue<BattleEvent>();
+
+    private event Action<UIEvent> registeredUIHandlers;
+    private event Action<BattleEvent> registeredBattleHandlers;
+
+    public void RegisterUIEventHandler(Action<UIEvent> action)
+    {
+        registeredUIHandlers += action;
+    }
+
+    public void UnregisterUIEventHandler(Action<UIEvent> action)
+    {
+        registeredUIHandlers -= action;
+    }
+
+    public void RegisterBattleEventHandler(Action<BattleEvent> action)
+    {
+        registeredBattleHandlers += action;
+    }
+
+    public void UnregisterBattleEventHandler(Action<BattleEvent> action)
+    {
+        registeredBattleHandlers -= action;
+    }
+
+    public void AddUIEvent(UIEvent uiEvent)
+    {
+        uiEventQueue.Enqueue(uiEvent);
+    }
+
+    public void AddBattleEvent(BattleEvent battleEvent)
+    {
+        battleEventQueue.Enqueue(battleEvent);
+    }
+
+    private void HandleUIEvent()
+    {
+        while (uiEventQueue.Count > 0)
+        {
+            var uiEvent = uiEventQueue.Dequeue();
+            Debug.Log($"current ui event: {uiEvent}");
+            registeredUIHandlers?.Invoke(uiEvent);
+        }
+    }
+
+    private void HandleBattleEvent()
+    {
+        while (battleEventQueue.Count > 0)
+        {
+            var battleEvent = battleEventQueue.Dequeue();
+            Debug.Log($"current battle event: {battleEvent}");
+            registeredBattleHandlers?.Invoke(battleEvent);
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        HandleBattleEvent();
+        HandleUIEvent();
+    }
+
+    #endregion
 }

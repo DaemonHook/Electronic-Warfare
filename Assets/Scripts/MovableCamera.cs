@@ -4,6 +4,7 @@
  * feature: 移动相机
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -23,73 +24,120 @@ public class MovableCamera : MonoBehaviour
 
     [Header("移动容差")] public float tolerance;
 
-    [Header("移动灵敏度")] public float sensitivity;
-
-    [Header("移动时间")] public float duration;
-
-    private IEnumerator _enumerator;
-
-    public bool Indrag { get; private set; } = false;
-
-    public bool Moveable { get; set; } = true;
-
-    private void Start()
+    public enum MoveMode
     {
+        cam,
+        obj,
+    }
+
+
+    //上次鼠标位置
+    Vector2 prevMousePos = Vector3.zero;
+
+    //滑动结束时的瞬时速度
+    Vector3 Speed = Vector3.zero;
+
+    //每帧偏差
+    Vector3 offSet = Vector3.zero;
+
+    //鼠标开始位置
+    Vector3 startMousePosition = Vector3.zero;
+
+    //速度衰減率
+    [Header("惯性滑动缩减率")] public float decelerationRate = 0.5f;
+
+    //摄像机
+    public Camera m_camera;
+
+    //移动模式
+    public MoveMode m_moveMode = MoveMode.obj;
+
+    void Update()
+    {
+        HandleMouseInput();
+    }
+
+    private void HandleMouseInput()
+    {
+        if (Input.touchCount > 0)
+        {
+            //按下时记录位置
+            if (Input.GetTouch(0).phase == TouchPhase.Began)
+            {
+                prevMousePos = Input.GetTouch(0).position;
+                startMousePosition = Input.GetTouch(0).position;
+            }
+
+            //移动时更新位置
+        }
+
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
+        {
+            Vector3 curMousePosition = Input.GetTouch(0).position; //当前鼠标的屏幕坐标系
+            //偏差值
+            offSet = m_camera.ScreenToWorldPoint(curMousePosition) - m_camera.ScreenToWorldPoint(prevMousePos);
+            prevMousePos = curMousePosition;
+            //瞬时速度
+            Speed = offSet / Time.deltaTime;
+        }
+        else //最后递减
+        {
+            Speed *= Mathf.Pow(decelerationRate, Time.deltaTime);
+            if (Mathf.Abs(Vector3.Magnitude(Speed)) < 1)
+            {
+                Speed = Vector3.zero;
+            }
+        }
+
+        Indrag = Speed != Vector3.zero;
+
+        Move(Speed);
+    }
+
+    public bool Indrag { get; set; }
+
+    public void Move(Vector3 speed)
+    {
+        if (Vector3.Magnitude(Speed) == 0)
+        {
+            return;
+        }
+
+        // Debug.Log("Current Speed" + Vector3.Magnitude(speed));
+        if (m_moveMode == MoveMode.obj)
+        {
+            var localPosition = transform.localPosition;
+            localPosition -= speed * Time.deltaTime;
+            localPosition = new Vector3(
+                Math.Clamp(localPosition.x, leftDown.x + tolerance, upRight.x - tolerance),
+                Math.Clamp(localPosition.y, leftDown.y + tolerance, upRight.y - tolerance),
+                -10
+            );
+            transform.localPosition = localPosition;
+        }
+        else
+        {
+            var localPosition = m_camera.transform.localPosition;
+            localPosition -= speed * Time.deltaTime;
+            localPosition = new Vector3(
+                Math.Clamp(localPosition.x, leftDown.x + tolerance, upRight.x - tolerance),
+                Math.Clamp(localPosition.y, leftDown.y + tolerance, upRight.y - tolerance),
+                -10
+            );
+            m_camera.transform.localPosition = localPosition;
+        }
+    }
+
+    public void Init(int width, int height, int originX, int originY)
+    {
+        transform.position = new Vector3(originX, originY, -10);
+        leftDown = new Vector2(-0.5f, -0.5f);
+        upRight = new Vector2(width - 0.5f, height - 0.5f);
     }
 
     private void Awake()
     {
-        thisCamera = GetComponent<Camera>();
         Instance = this;
-    }
-
-    Vector3 GetMousePositionInWorld()
-    {
-        Vector3 screenPosition = Input.mousePosition;
-        return thisCamera.ScreenToWorldPoint(screenPosition);
-    }
-
-    private IEnumerator DragMoveCoroutine()
-    {
-        Vector3 initialMousePosition = GetMousePositionInWorld();
-        Indrag = true;
-        while (Input.GetMouseButton(0) && Moveable)
-        {
-            //Debug.Log("Check Drag!");
-            Vector3 currentMousePosition = GetMousePositionInWorld();
-            Vector3 travel = currentMousePosition - initialMousePosition;
-            //Debug.Log($"target: {transform.position - travel}");
-            travel.z = 0;
-            if (travel.magnitude / transform.GetComponent<Camera>().orthographicSize > sensitivity)
-            {
-                CameraMoveWithTolerance(transform.position - travel);
-            }
-            yield return null;
-        }
-
-        Indrag = false;
-    }
-
-    private void CameraMoveWithTolerance(Vector3 target)
-    {
-        target.x = Mathf.Clamp(target.x, leftDown.x + tolerance, upRight.x - tolerance);
-        target.y = Mathf.Clamp(target.y, leftDown.y + tolerance, upRight.y - tolerance);
-        //Debug.Log($"Camera move to {target}");
-        transform.DOMove(target, duration);
-    }
-
-    public void Init(int width, int height, int startX, int startY)
-    {
-        leftDown = new Vector2(0, 0);
-        upRight = new Vector2(width, height);
-        transform.position = new Vector3(startX, startY, -10);
-    }
-
-    private void Update()
-    {
-        if (Input.GetMouseButton(0) && !Indrag && Moveable)
-        {
-            StartCoroutine(DragMoveCoroutine());
-        }
+        m_camera = GetComponent<Camera>();
     }
 }

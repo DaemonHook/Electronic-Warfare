@@ -29,7 +29,7 @@ public class Factory : MonoBehaviour
         var newGO = GameObject.Instantiate(prefab, TerrainParent);
         var tt = newGO.AddComponent<TerrainTile>();
         tt.Init(x, y, terrainType);
-        newGO.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.Terrain;
+        newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Terrain";
         newGO.SetActive(true);
         return newGO;
     }
@@ -39,7 +39,7 @@ public class Factory : MonoBehaviour
         var newGO = GameObject.Instantiate(prefab, ObjectParent);
         var tt = newGO.AddComponent<TerrainTile>();
         tt.Init(x, y, terrainType);
-        newGO.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.Object;
+        newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Object";
         newGO.SetActive(true);
         return newGO;
     }
@@ -50,7 +50,7 @@ public class Factory : MonoBehaviour
         var newHpGO = Instantiate(HpPrefab, newGO.transform);
         var unitTile = newGO.AddComponent<UnitTile>();
         unitTile.Init(property, x, y);
-        newGO.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.Object;
+        newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Unit";
         newGO.SetActive(true);
         return newGO;
     }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -20,5 +21,27 @@ public class GameTile : MonoBehaviour
         CordX = x;
         CordY = y;
         transform.position = new Vector3(((float)x), ((float)y));
+    }
+
+    protected virtual void ReceiveUIEvent(UIEvent uiEvent)
+    {
+        
+    }
+
+    protected virtual void ReceiveBattleEvent(BattleEvent battleEvent)
+    {
+        
+    }
+
+    private void Awake()
+    {
+        BattleManager.Instance.RegisterUIEventHandler(ReceiveUIEvent);
+        BattleManager.Instance.RegisterBattleEventHandler(ReceiveBattleEvent);
+    }
+
+    private void OnDestroy()
+    {
+        BattleManager.Instance.UnregisterUIEventHandler(ReceiveUIEvent);
+        BattleManager.Instance.UnregisterBattleEventHandler(ReceiveBattleEvent);
     }
 }

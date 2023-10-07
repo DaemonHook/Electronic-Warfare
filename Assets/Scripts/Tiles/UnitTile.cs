@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 public class UnitTile : GameTile
 {
@@ -20,4 +21,5 @@ public class UnitTile : GameTile
     {
         hpPanel.SetHPDisplay((int)Math.Round(((double)CurrentProperty.hp / OriginProperty.hp) * 10));
     }
+
 }
