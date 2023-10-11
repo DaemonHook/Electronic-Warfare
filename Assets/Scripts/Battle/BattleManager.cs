@@ -33,8 +33,11 @@ public class BattleManager : MonoBehaviour
     public Package Package { get; private set; } //当前加载的package
 
     public TerrainTile[,] Terrains;
+    public GameObject[,] TerrainGOs;
     public TerrainTile[,] Objects; //terrain层和object层都是terrainTile
+    public GameObject[,] ObjectGOs;
     public UnitTile[,] Units;
+    public GameObject[,] UnitGOs;
 
     private void OnTouchpadClicked(int row, int col)
     {
@@ -106,6 +109,7 @@ public class BattleManager : MonoBehaviour
     private void CreateUnits()
     {
         Units = new UnitTile[Width, Height];
+        UnitGOs = new GameObject[Width, Height];
         var unitIds = Map.Unit;
         TeamCount = 0;
         TeamUnits = new Dictionary<int, List<UnitTile>>();
@@ -117,6 +121,7 @@ public class BattleManager : MonoBehaviour
                 var prefab = Package.Prefabs[unitIds[i, j].tileId];
                 var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
                 Units[i, j] = go.GetComponent<UnitTile>();
+                UnitGOs[i, j] = go;
                 int t;
                 if ((t = Units[i, j].CurrentProperty.team) != -1)
                 {
@@ -136,6 +141,7 @@ public class BattleManager : MonoBehaviour
     private void CreateObjects()
     {
         Objects = new TerrainTile[Width, Height];
+        ObjectGOs = new GameObject[Width, Height];
         var objectIds = Map.Object;
         for (int i = 0; i < Width; i++)
         {
@@ -146,6 +152,7 @@ public class BattleManager : MonoBehaviour
                     var prefab = Package.Prefabs[objectIds[i, j].tileId];
                     var go = Factory.Instance.ObjectFactory(prefab, i, j, Package.TerrainTypes[objectIds[i, j].tileId]);
                     Objects[i, j] = go.GetComponent<TerrainTile>();
+                    ObjectGOs[i, j] = go;
                 }
             }
         }
@@ -154,6 +161,7 @@ public class BattleManager : MonoBehaviour
     private void CreateTerrains()
     {
         Terrains = new TerrainTile[Width, Height];
+        TerrainGOs = new GameObject[Width, Height];
         var terrainIds = Map.Terrain;
         for (int i = 0; i < Width; i++)
         {
@@ -164,6 +172,7 @@ public class BattleManager : MonoBehaviour
                     var prefab = Package.Prefabs[terrainIds[i, j].tileId];
                     var go = Factory.Instance.TerrainFactory(prefab, i, j,
                         Package.TerrainTypes[terrainIds[i, j].tileId]);
+                    TerrainGOs[i, j] = go;
                     Terrains[i, j] = go.GetComponent<TerrainTile>();
                 }
             }

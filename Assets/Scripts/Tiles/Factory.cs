@@ -22,8 +22,8 @@ public class Factory : MonoBehaviour
     /// <summary>
     /// 单位HP面板之prefab
     /// </summary>
-    public GameObject HpPrefab; 
-    
+    public GameObject HpPrefab;
+
     public GameObject TerrainFactory(GameObject prefab, int x, int y, TerrainType terrainType)
     {
         var newGO = GameObject.Instantiate(prefab, TerrainParent);
@@ -31,9 +31,10 @@ public class Factory : MonoBehaviour
         tt.Init(x, y, terrainType);
         newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Terrain";
         newGO.SetActive(true);
+        newGO.tag = "Terrain";
         return newGO;
     }
-    
+
     public GameObject ObjectFactory(GameObject prefab, int x, int y, TerrainType terrainType)
     {
         var newGO = GameObject.Instantiate(prefab, ObjectParent);
@@ -41,6 +42,7 @@ public class Factory : MonoBehaviour
         tt.Init(x, y, terrainType);
         newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Object";
         newGO.SetActive(true);
+        newGO.tag = "Object";
         return newGO;
     }
 
@@ -52,6 +54,7 @@ public class Factory : MonoBehaviour
         unitTile.Init(property, x, y);
         newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Unit";
         newGO.SetActive(true);
+        newGO.tag = "Unit";
         return newGO;
     }
 }
