@@ -27,6 +27,7 @@ public class BattleUI : MonoBehaviour
     private void Start()
     {
         BattleManager.Instance.RegisterUIEventHandler(OnUIEvent);
+        LTPanel.SetActive(false);
     }
 
     private void SetArmyViewActive(bool on)
@@ -45,9 +46,10 @@ public class BattleUI : MonoBehaviour
                 if (lastClick == (i, j))
                 {
                     LTPanel.SetActive(false);
+                    lastClick = (-9879, -524389);
                     break;
                 }
-
+                LTPanel.SetActive(true);
                 lastClick = (i, j);
                 GameObject terrainGO = BattleManager.Instance.TerrainGOs[i, j];
                 GameObject objectGO = BattleManager.Instance.ObjectGOs[i, j];
@@ -58,7 +60,8 @@ public class BattleUI : MonoBehaviour
                 {
                     terrainSprite = terrainGO.GetComponent<SpriteRenderer>().sprite;
                 }
-                terrainView
+
+                terrainView.SetTerrainImage(terrainSprite);
 
 
                 Sprite objectSprite = null;
@@ -66,6 +69,8 @@ public class BattleUI : MonoBehaviour
                 {
                     objectSprite = objectGO.GetComponent<SpriteRenderer>().sprite;
                 }
+
+                terrainView.SetObjectImage(objectSprite);
 
                 if (unitGO != null)
                 {

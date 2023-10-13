@@ -199,6 +199,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2704997151022321837, guid: b970e04dab379ea4fa17c9cf9790f4fe, type: 3}
+      propertyPath: m_Text
+      value: Tartic Arena
+      objectReference: {fileID: 0}
     - target: {fileID: 3231591335391406608, guid: b970e04dab379ea4fa17c9cf9790f4fe, type: 3}
       propertyPath: m_Name
       value: SubTitle
@@ -218,6 +222,18 @@ PrefabInstance:
     - target: {fileID: 4779301812824025542, guid: b970e04dab379ea4fa17c9cf9790f4fe, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -0.000011444
+      objectReference: {fileID: 0}
+    - target: {fileID: 5870968045903203106, guid: b970e04dab379ea4fa17c9cf9790f4fe, type: 3}
+      propertyPath: m_Text
+      value: "GOF\u4F5C\u54C1 \u6E2F\u6FB3\u53F0\u53CA\u6D77\u5916\u5730\u5340\u5C08\u4F9B"
+      objectReference: {fileID: 0}
+    - target: {fileID: 6146173089108158085, guid: b970e04dab379ea4fa17c9cf9790f4fe, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 405
+      objectReference: {fileID: 0}
+    - target: {fileID: 6146173089108158085, guid: b970e04dab379ea4fa17c9cf9790f4fe, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 190.2
       objectReference: {fileID: 0}
     - target: {fileID: 7507508912732916930, guid: b970e04dab379ea4fa17c9cf9790f4fe, type: 3}
       propertyPath: m_Pivot.x

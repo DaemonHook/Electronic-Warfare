@@ -18,6 +18,7 @@ public class TerrainView : MonoBehaviour
     {
         if (terrainImage != null)
         {
+            TerrainImage.color = Color.white;
             TerrainImage.sprite = terrainImage;
         }
         else
@@ -34,6 +35,7 @@ public class TerrainView : MonoBehaviour
     {
         if (objectImage != null)
         {
+            ObjectImage.color = Color.white;
             ObjectImage.sprite = objectImage;
         }
         else
