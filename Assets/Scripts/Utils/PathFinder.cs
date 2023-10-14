@@ -29,6 +29,9 @@ public static class PathFinder
         }
     }
 
-    // public List<PathNode> Find(int startX, int startY, int targetX, int targetY, Func<bool, int, int> ableMove,
-    //     )
+    //public List<PathNode> Find(int startX, int startY, int targetX, int targetY, 
+    //    Func<bool, int, int> ableMove)
+    //{
+
+    //}
 }
