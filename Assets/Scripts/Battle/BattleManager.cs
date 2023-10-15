@@ -130,10 +130,6 @@ public class BattleManager : MonoBehaviour
                         TeamUnits[i].Add(Units[i, j]);
                     }
                 }
-                else
-                {
-                    TeamUnits.Add(t, new List<UnitTile> { Units[i, j] });
-                }
             }
         }
     }
