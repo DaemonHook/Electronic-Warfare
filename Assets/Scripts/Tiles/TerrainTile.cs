@@ -2,11 +2,16 @@ using UnityEngine;
 
 public class TerrainTile : GameTile
 {
-    public TerrainType TerrainType { get; private set; }
+    private BlockType blockType;
 
-    public void Init(int x, int y, TerrainType terrainType)
+    public override BlockType GetBlockType()
+    {
+        return blockType;
+    }
+
+    public void Init(int x, int y, BlockType blockType)
     {
         Init(x, y);
-        TerrainType = terrainType;
+        this.blockType = blockType;
     }
 }

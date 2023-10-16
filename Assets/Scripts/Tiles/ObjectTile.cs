@@ -1,7 +1,15 @@
-namespace Tiles
+public class ObjectTile : GameTile
 {
-    public class ObjectTile
+    private BlockType blockType;
+
+    public override BlockType GetBlockType()
     {
-        
+        return blockType;
+    }
+
+    public void Init(int x, int y, BlockType blockType)
+    {
+        Init(x, y);
+        this.blockType = blockType;
     }
 }

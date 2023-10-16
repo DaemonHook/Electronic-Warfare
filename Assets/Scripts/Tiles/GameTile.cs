@@ -6,6 +6,11 @@ using UnityEngine;
 /// </summary>
 public class GameTile : MonoBehaviour
 {
+    public virtual BlockType GetBlockType()
+    {
+        return BlockType.Block;
+    }
+    
     /// <summary>
     /// x坐标，与transform实际坐标相同
     /// </summary>

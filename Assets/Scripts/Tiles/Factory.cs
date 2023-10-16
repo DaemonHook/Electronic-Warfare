@@ -24,22 +24,22 @@ public class Factory : MonoBehaviour
     /// </summary>
     public GameObject HpPrefab;
 
-    public GameObject TerrainFactory(GameObject prefab, int x, int y, TerrainType terrainType)
+    public GameObject TerrainFactory(GameObject prefab, int x, int y, BlockType blockType)
     {
         var newGO = GameObject.Instantiate(prefab, TerrainParent);
         var tt = newGO.AddComponent<TerrainTile>();
-        tt.Init(x, y, terrainType);
+        tt.Init(x, y, blockType);
         newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Terrain";
         newGO.SetActive(true);
         newGO.tag = "Terrain";
         return newGO;
     }
 
-    public GameObject ObjectFactory(GameObject prefab, int x, int y, TerrainType terrainType)
+    public GameObject ObjectFactory(GameObject prefab, int x, int y, BlockType blockType)
     {
         var newGO = GameObject.Instantiate(prefab, ObjectParent);
         var tt = newGO.AddComponent<TerrainTile>();
-        tt.Init(x, y, terrainType);
+        tt.Init(x, y, blockType);
         newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Object";
         newGO.SetActive(true);
         newGO.tag = "Object";

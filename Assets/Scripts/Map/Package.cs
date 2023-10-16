@@ -244,16 +244,18 @@ public class TileSet
 }
 
 /// <summary>
-/// 地形种类
+/// 地形和物体种类
 /// </summary>
-public enum TerrainType
+public enum BlockType
 {
-    Ground, //平地
-    Water,  //水面
-    Hill,   //山地
-    Road,   //公路
-    Wood,   //林地
-    Block,  //障碍
+    Ground,     //平地
+    Water,      //水面
+    Hill,       //山地
+    Road,       //公路
+    Wood,       //林地
+    Block,      //障碍
+    Building,   //建筑
+    Unit        //单位
 }
 
 
@@ -370,7 +372,7 @@ public class Package
     /// <summary>
     /// 定义的地形属性
     /// </summary>
-    public Dictionary<int, TerrainType> TerrainTypes { get; private set; }
+    public Dictionary<int, BlockType> TerrainTypes { get; private set; }
 
     /// <summary>
     /// 
@@ -450,12 +452,12 @@ public class Package
         }
         Debug.Log("UnitDefines load done.");
 
-        TerrainTypes = new Dictionary<int, TerrainType>();
+        TerrainTypes = new Dictionary<int, BlockType>();
         CSVDocument terrainDefCSV = new CSVDocument(Resources.Load<TextAsset>(TerrainDefinePath).text);
         foreach (var line in terrainDefCSV.Data)
         {
             int id = int.Parse(line["id"]);
-            TerrainType type = Enum.Parse<TerrainType>(line["terrain_type"], true);
+            BlockType type = Enum.Parse<BlockType>(line["terrain_type"], true);
             TerrainTypes.Add(id, type);
         }
 

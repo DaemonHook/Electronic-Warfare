@@ -5,6 +5,8 @@ public class UnitTile : GameTile
 {
     public UnitProperty OriginProperty;
     public UnitProperty CurrentProperty;
+    public bool ThisTurnMoved;
+    public bool ThisTurnAttacked;
     
     private HPPanel hpPanel;
     
@@ -17,11 +19,6 @@ public class UnitTile : GameTile
         RefreshDisplay();
     }
     
-    /// <summary>
-    /// 此单位是否为活跃单位（当前操作的单位）
-    /// </summary>
-    private bool active = false;
-    
     protected override void ReceiveUIEvent(UIEvent uiEvent)
     {
         base.ReceiveUIEvent(uiEvent);
@@ -31,9 +28,7 @@ public class UnitTile : GameTile
                 var (x, y) = ((int, int))uiEvent.Param;
                 if ((x, y) == (PosX, PosY))
                 {
-                    active = !active;
-                    if (active)
-                    {}
+                    
                 }
                 break;
             default:
@@ -41,6 +36,8 @@ public class UnitTile : GameTile
         }
     }
 
+    public bool Selected { get; set; }
+    
     public void RefreshDisplay()
     {
         hpPanel.SetHPDisplay((int)Math.Round(((double)CurrentProperty.hp / OriginProperty.hp) * 10));

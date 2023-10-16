@@ -34,7 +34,7 @@ public class BattleManager : MonoBehaviour
 
     public TerrainTile[,] Terrains;
     public GameObject[,] TerrainGOs;
-    public TerrainTile[,] Objects; //terrain层和object层都是terrainTile
+    public ObjectTile[,] Objects;
     public GameObject[,] ObjectGOs;
     public UnitTile[,] Units;
     public GameObject[,] UnitGOs;
@@ -136,7 +136,7 @@ public class BattleManager : MonoBehaviour
 
     private void CreateObjects()
     {
-        Objects = new TerrainTile[Width, Height];
+        Objects = new ObjectTile[Width, Height];
         ObjectGOs = new GameObject[Width, Height];
         var objectIds = Map.Object;
         for (int i = 0; i < Width; i++)
@@ -147,7 +147,7 @@ public class BattleManager : MonoBehaviour
                 {
                     var prefab = Package.Prefabs[objectIds[i, j].tileId];
                     var go = Factory.Instance.ObjectFactory(prefab, i, j, Package.TerrainTypes[objectIds[i, j].tileId]);
-                    Objects[i, j] = go.GetComponent<TerrainTile>();
+                    Objects[i, j] = go.GetComponent<ObjectTile>();
                     ObjectGOs[i, j] = go;
                 }
             }
@@ -245,6 +245,25 @@ public class BattleManager : MonoBehaviour
     }
 
     #endregion
+
+    #region 单位操作
+
+    private UnitTile curActiveUnit = null;
+
+    private Dictionary<ValueTuple<int, int>, OperationType> curActiveOperations =
+        new Dictionary<(int, int), OperationType>();
     
     
+    /// <summary>
+    /// 对于选中的单位，显示其可行操作，若重复选择，则视为取消选择
+    /// </summary>
+    public void UnitSelected(UnitTile unitTile)
+    {
+        if (curActiveUnit == unitTile)
+        {
+            
+        }
+    }
+
+    #endregion
 }
