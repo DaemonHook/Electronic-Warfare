@@ -9,17 +9,17 @@ public class GameTile : MonoBehaviour
     /// <summary>
     /// x坐标，与transform实际坐标相同
     /// </summary>
-    public int CordX { get; private set; }
+    public int PosX { get; private set; }
     
     /// <summary>
     /// y坐标，与transform实际坐标相同
     /// </summary>
-    public int CordY { get; private set; }
+    public int PosY { get; private set; }
 
     public virtual void Init(int x, int y)
     {
-        CordX = x;
-        CordY = y;
+        PosX = x;
+        PosY = y;
         transform.position = new Vector3(((float)x), ((float)y));
     }
 
