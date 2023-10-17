@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
@@ -38,6 +39,7 @@ public class BattleManager : MonoBehaviour
     public GameObject[,] ObjectGOs;
     public UnitTile[,] Units;
     public GameObject[,] UnitGOs;
+    public TouchPad[,] TouchPads;
 
     private void OnTouchpadClicked(int row, int col)
     {
@@ -46,6 +48,7 @@ public class BattleManager : MonoBehaviour
 
     private void CreateTouchPads()
     {
+        TouchPads = new TouchPad[Width, Height];
         for (int i = 0; i < Width; i++)
         {
             for (int j = 0; j < Height; j++)
@@ -55,6 +58,7 @@ public class BattleManager : MonoBehaviour
                 go.transform.SetParent(GameObject.Find("Manager/TouchPads").transform);
                 go.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.TouchPad;
                 int ti = i, tj = j;
+                TouchPads[i, j] = go.GetComponent<TouchPad>();
                 go.GetComponent<TouchPad>().Init(
                     (PointerEventData ped) => { OnTouchpadClicked(ti, tj); },
                     i, j);
@@ -223,7 +227,7 @@ public class BattleManager : MonoBehaviour
         while (uiEventQueue.Count > 0)
         {
             var uiEvent = uiEventQueue.Dequeue();
-            Debug.Log($"current ui event: {uiEvent}");
+            //Debug.Log($"current ui event: {uiEvent}");
             registeredUIHandlers?.Invoke(uiEvent);
         }
     }
@@ -233,7 +237,7 @@ public class BattleManager : MonoBehaviour
         while (battleEventQueue.Count > 0)
         {
             var battleEvent = battleEventQueue.Dequeue();
-            Debug.Log($"current battle event: {battleEvent}");
+            //Debug.Log($"current battle event: {battleEvent}");
             registeredBattleHandlers?.Invoke(battleEvent);
         }
     }
@@ -248,20 +252,96 @@ public class BattleManager : MonoBehaviour
 
     #region 单位操作
 
+    /// <summary>
+    /// 现在活跃的单位
+    /// </summary>
     private UnitTile curActiveUnit = null;
 
     private Dictionary<ValueTuple<int, int>, OperationType> curActiveOperations =
         new Dictionary<(int, int), OperationType>();
-    
-    
-    /// <summary>
-    /// 对于选中的单位，显示其可行操作，若重复选择，则视为取消选择
-    /// </summary>
-    public void UnitSelected(UnitTile unitTile)
+
+    private bool UnitCanPass(int posX, int posY)
     {
+        ObjectTile objectTile = Objects[posX, posY];
+        TerrainTile terrainTile = Terrains[posX, posY];
+        return curActiveUnit.CanPass(objectTile, terrainTile);
+    }
+
+    /// <summary>
+    /// 设置当前选中的单位（若为null则为取消选择）
+    /// </summary>
+    private void SetActiveUnit(UnitTile unitTile)
+    {
+        curActiveUnit = null;
+        ClearOpeartionsDisplay();
+        curActiveOperations.Clear();
+        if (unitTile != null)
+        {
+            // 刷新可行动作
+
+            // 添加移动动作
+            curActiveUnit = unitTile;
+            var curList = PathFinder.Find(unitTile.PosX, unitTile.PosY,
+                // 单位可以通过地形且该格子无其他单位
+                unitTile.CurrentProperty.mp, (int x, int y) =>
+                {
+                    if (UnitCanPass(x, y))
+                    {
+                        return Units[x, y] == null;
+                    }
+                    return false;
+                });
+            foreach (var node in curList)
+            {
+                //print(node);
+                curActiveOperations.Add((node.x, node.y), OperationType.Move);
+            }
+
+            //TODO：加入其他动作
+        }
+
+        DisplayActiveOperations();
+    }
+
+    private void ClearOpeartionsDisplay()
+    {
+        foreach (var (i, j) in curActiveOperations.Keys)
+        {
+            TouchPads[i, j].SetControlState(ControlState.None);
+        }
+    }
+
+    private void DisplayActiveOperations()
+    {
+        foreach (var (pos, type) in curActiveOperations)
+        {
+            //TODO 添加其他动作显示
+            switch (type)
+            {
+                case OperationType.Move:
+                    TouchPads[pos.Item1, pos.Item2].SetControlState(ControlState.Moveable);
+                    break;
+                case OperationType.Attack:
+                    break;
+                default: break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 对于选中的单位，显示其可行操作，若重复选择，则视为取消
+    /// </summary>
+    public void UnitClick(UnitTile unitTile)
+    {
+        Debug.Log($"UnitClick at {unitTile.PosX}, {unitTile.PosY}");
+
         if (curActiveUnit == unitTile)
         {
-            
+            SetActiveUnit(null);
+        }
+        else
+        {
+            SetActiveUnit(unitTile);
         }
     }
 

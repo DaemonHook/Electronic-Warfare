@@ -1,4 +1,4 @@
-﻿/*
+/*
  * file: TouchPad.cs
  * feature: 检测对于棋盘格子的点击
  */
@@ -14,7 +14,7 @@ using UnityEngine.EventSystems;
 /// <summary>
 /// 可以进行的操作状态
 /// </summary>
-public enum TouchState
+public enum ControlState
 {
     None, //无（或选择）
     Moveable, //可移动  
@@ -32,12 +32,15 @@ public class TouchPad : MonoBehaviour, IPointerClickHandler
 
     public Color MovableColor, AttackableColor;
     public Color SelectedColor;
+    public Color BuildableColor;
 
     private GameObject SelectGO;
+    private GameObject ControlGO;
 
     private void Awake()
     {
         SelectGO = transform.Find("Select").gameObject;
+        ControlGO = transform.Find("Control").gameObject;
     }
 
     public void Init(Action<PointerEventData> callBack, int row, int col)
@@ -46,6 +49,7 @@ public class TouchPad : MonoBehaviour, IPointerClickHandler
         Row = row;
         Col = col;
         BattleManager.Instance.RegisterUIEventHandler(ReceiveUIEvent);
+        SetControlState(ControlState.None);
     }
 
     private bool selected = false;
@@ -89,4 +93,29 @@ public class TouchPad : MonoBehaviour, IPointerClickHandler
     {
         GetComponent<SpriteRenderer>().color = color;
     }
+
+    #region 控制显示样式
+
+    public void SetControlState(ControlState state)
+    {
+        var controlSp = ControlGO.GetComponent<SpriteRenderer>();
+        switch (state)
+        {
+            case ControlState.None:
+                controlSp.color = Color.clear;
+                break;
+            case ControlState.Moveable:
+                controlSp.color = MovableColor;
+                break;
+            case ControlState.Attackable:
+                controlSp.color = AttackableColor;
+                break;
+            case ControlState.Buildable:
+                controlSp.color = BuildableColor;
+                break;
+            default: break;
+        }
+    }
+
+    #endregion
 }
