@@ -15,4 +15,9 @@ public static class GameApp
             from map in maps select Path.GetFileNameWithoutExtension(map.name));
         return mapNames;
     }
+
+    public static void Foo()
+    {
+        
+    }
 }
