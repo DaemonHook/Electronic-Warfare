@@ -23,7 +23,6 @@ public class BattleManager : MonoBehaviour
 {
     public static BattleManager Instance;
 
-    public string PackageName;
     public string MapName;
 
     public TiledMap Map { get; set; }
@@ -102,7 +101,7 @@ public class BattleManager : MonoBehaviour
 
     private void LoadPackage()
     {
-        Package = new Package(PackageName);
+        Package = new Package(GameApp.PackageName);
     }
 
     private void ApplySettings()

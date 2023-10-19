@@ -1,34 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
 
-//
-// public static class ViewManager
-// {
-//     
-//     static Dictionary<string, GameObject> viewCache = new Dictionary<string, GameObject>();
-//     
-//     static ViewManager()
-//     {
-//         var baseViews = Resources.LoadAll<GameObject>("View");
-//         foreach (var view in baseViews)
-//         {
-//             }
-//         }
-//     }
-//
-//     public static GameObject CreateView(string name, Transform parent)
-//     {
-//         if (!viewCache.ContainsKey(name))
-//         {
-//             Debug.LogError($"Error creating view named {name}");
-//             return null;
-//         }
-//         var go = GameObject.Instantiate(viewCache[name], parent);
-//         return go;
-//     }
-// }
-//
-// public static class GameApp
-// {
-// }
+public static class GameApp
+{
+    public static string PackageName { get; set; } = "SamplePackage";
+
+    public static List<string> GetMapList()
+    {
+        var maps = Resources.LoadAll<TextAsset>($"{PackageName}/Maps");
+        List<string> mapNames = new List<string>(
+            from map in maps select Path.GetFileNameWithoutExtension(map.name));
+        return mapNames;
+    }
+
+    public static void Foo()
+    {
+        
+    }
+}

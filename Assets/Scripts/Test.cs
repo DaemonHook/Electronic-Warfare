@@ -8,9 +8,10 @@ public class Test : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // var text = Resources.Load<TextAsset>("SamplePackage/Maps/sampleMap.tmx");
-        // var tileMap = new TiledMap(text.text);
-        // var MapData = new Package("SamplePackage");
+        foreach (var mapName in GameApp.GetMapList())
+        {
+            print(mapName);
+        }
     }
 
     // Update is called once per frame
