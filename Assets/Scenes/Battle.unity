@@ -67,9 +67,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -720,7 +717,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 4.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -804,13 +801,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 812873378}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98d0b6068de5d44718f43a235330acaa, type: 3}
+  m_Script: {fileID: 11500000, guid: 9dffbd6e78145467987971610f3bb392, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   leftDown: {x: 0, y: 0}
   upRight: {x: 0, y: 0}
-  tolerance: 4.5
-  decelerationRate: 0.1
+  tolerance: 4
+  decelerationRate: 0.9
   m_camera: {fileID: 0}
   m_moveMode: 1
 --- !u!114 &812873384
@@ -939,7 +936,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1.7721806, y: 0.06385708, z: 0}
-  m_LocalScale: {x: 100, y: 54.59945, z: 3.02342}
+  m_LocalScale: {x: 1000, y: 545.9945, z: 30.234201}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -1602,7 +1599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c8c8da97bfb3e046996373e82eea191, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PackageName: SamplePackage
+  ModuleName: SamplePackage
   MapName: sampleMap
   Height: 10
   Width: 10

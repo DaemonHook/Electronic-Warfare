@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,7 +15,8 @@ public static class GameApp
     public static List<string> GetMapList()
     {
         var mapTAList = Resources.LoadAll<TextAsset>($"{ModuleName}/Maps");
-        return new List<string>(from mapTA in mapTAList select mapTA.name);
+        return new List<string>(
+            from mapTA in mapTAList select Path.GetFileNameWithoutExtension(mapTA.name));
     }
 
     public static void EnterMap(string mapName)
