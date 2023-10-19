@@ -1,34 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-//
-// public static class ViewManager
-// {
-//     
-//     static Dictionary<string, GameObject> viewCache = new Dictionary<string, GameObject>();
-//     
-//     static ViewManager()
-//     {
-//         var baseViews = Resources.LoadAll<GameObject>("View");
-//         foreach (var view in baseViews)
-//         {
-//             }
-//         }
-//     }
-//
-//     public static GameObject CreateView(string name, Transform parent)
-//     {
-//         if (!viewCache.ContainsKey(name))
-//         {
-//             Debug.LogError($"Error creating view named {name}");
-//             return null;
-//         }
-//         var go = GameObject.Instantiate(viewCache[name], parent);
-//         return go;
-//     }
-// }
-//
-// public static class GameApp
-// {
-// }
+public static class GameApp
+{
+    // 当前模组名称
+    public static string ModuleName { get; set; } = "SamplePackage";
+
+    public static string MapName { get; set; } = null;
+
+    public static List<string> GetMapList()
+    {
+        var mapTAList = Resources.LoadAll<TextAsset>($"{ModuleName}/Maps");
+        return new List<string>(from mapTA in mapTAList select mapTA.name);
+    }
+
+    public static void EnterMap(string mapName)
+    {
+        MapName = mapName;
+        var ao = SceneManager.LoadSceneAsync("Scenes/Battle");
+    }
+}

@@ -23,7 +23,7 @@ public class BattleManager : MonoBehaviour
 {
     public static BattleManager Instance;
 
-    public string PackageName;
+    [FormerlySerializedAs("PackageName")] public string ModuleName;
     public string MapName;
 
     public TiledMap Map { get; set; }
@@ -76,8 +76,22 @@ public class BattleManager : MonoBehaviour
         Init();
     }
 
+    private void GetMapName()
+    {
+        if (GameApp.ModuleName != null)
+        {
+            ModuleName = GameApp.ModuleName;
+        }
+
+        if (GameApp.MapName != null)
+        {
+            MapName = GameApp.MapName;
+        }
+    }
+
     private void Init()
     {
+        GetMapName();
         LoadPackage();
         LoadMap();
         ApplySettings();
@@ -102,7 +116,7 @@ public class BattleManager : MonoBehaviour
 
     private void LoadPackage()
     {
-        Package = new Package(PackageName);
+        Package = new Package(ModuleName);
     }
 
     private void ApplySettings()
@@ -289,6 +303,7 @@ public class BattleManager : MonoBehaviour
                     {
                         return Units[x, y] == null;
                     }
+
                     return false;
                 });
             foreach (var node in curList)
