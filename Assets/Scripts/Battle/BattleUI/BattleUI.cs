@@ -13,15 +13,21 @@ public class BattleUI : MonoBehaviour
     public Transform LTPanelTr;
     public GameObject LTPanel;
 
+    public Transform RTPanelTr;
+    
     private ArmyView armyView;
     private TerrainView terrainView;
 
+    private Text teamText;
+    
     public void Awake()
     {
         Instance = this;
         transform.Find("LeftTop").position = new Vector3(Screen.safeArea.xMin, Screen.safeArea.yMax);
+        transform.Find("RightTop").position = new Vector3(Screen.safeArea.xMax, Screen.safeArea.yMax);
         armyView = LTPanelTr.Find("ArmyView").GetComponent<ArmyView>();
         terrainView = LTPanelTr.Find("TerrainView").GetComponent<TerrainView>();
+        teamText = RTPanelTr.Find("CurrentTeam").GetComponent<Text>();
     }
 
     private void Start()

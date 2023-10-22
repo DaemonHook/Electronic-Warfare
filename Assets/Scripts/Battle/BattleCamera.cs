@@ -14,16 +14,18 @@ using DG.Tweening;
 /// <summary>
 /// 可移动的相机
 /// </summary>
-public class MovableCamera : MonoBehaviour
+public class BattleCamera : MonoBehaviour
 {
     private Camera thisCamera;
 
-    public static MovableCamera Instance;
+    public static BattleCamera Instance;
 
     [Header("相机移动范围")] public Vector2 leftDown, upRight;
 
     [Header("移动容差")] public float tolerance;
 
+    [Header("判断是否在拖动状态的阈值")] public float IndragThreshold;
+    
     public enum MoveMode
     {
         cam,
@@ -67,9 +69,8 @@ public class MovableCamera : MonoBehaviour
                 prevMousePos = Input.GetTouch(0).position;
                 startMousePosition = Input.GetTouch(0).position;
             }
-
-            //移动时更新位置
         }
+        //移动时更新位置
 
         if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
         {
@@ -89,12 +90,10 @@ public class MovableCamera : MonoBehaviour
             }
         }
 
-        Indrag = Speed != Vector3.zero;
-
         Move(Speed);
     }
 
-    public bool Indrag { get; set; }
+    public bool Indrag => Speed.magnitude >= IndragThreshold;
 
     public void Move(Vector3 speed)
     {

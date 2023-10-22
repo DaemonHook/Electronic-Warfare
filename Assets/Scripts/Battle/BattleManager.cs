@@ -41,11 +41,6 @@ public class BattleManager : MonoBehaviour
     public GameObject[,] UnitGOs;
     public TouchPad[,] TouchPads;
 
-    private void OnTouchpadClicked(int row, int col)
-    {
-        AddUIEvent(new UIEvent(UIEventType.Click, (row, col)));
-    }
-
     private void CreateTouchPads()
     {
         TouchPads = new TouchPad[Width, Height];
@@ -57,11 +52,8 @@ public class BattleManager : MonoBehaviour
                     transform);
                 go.transform.SetParent(GameObject.Find("Manager/TouchPads").transform);
                 go.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.TouchPad;
-                int ti = i, tj = j;
                 TouchPads[i, j] = go.GetComponent<TouchPad>();
-                go.GetComponent<TouchPad>().Init(
-                    (PointerEventData ped) => { OnTouchpadClicked(ti, tj); },
-                    i, j);
+                go.GetComponent<TouchPad>().Init(i, j);
             }
         }
     }
@@ -121,7 +113,7 @@ public class BattleManager : MonoBehaviour
 
     private void ApplySettings()
     {
-        MovableCamera.Instance.Init(Width, Height, Width / 2, Height / 2);
+        BattleCamera.Instance.Init(Width, Height, Width / 2, Height / 2);
     }
 
     private void CreateUnits()
@@ -264,7 +256,92 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    #region 单位操作
+    public int CurTeam { get; set; } = 1; //当前行动的队伍
+
+    #region 玩家操作处理
+
+    // 玩家的操作状态
+    private enum OperatingState
+    {
+        NoSelect, //没有选中单位
+        Selected, //已经选中单位，但未指定操作
+        Confirming, //指定了操作，确认中 
+    }
+
+    //当前操作状态
+    private OperatingState curOperatingState = OperatingState.NoSelect;
+
+    public void OnTouchpadClicked(int row, int col)
+    {
+        print($"Touchpad at {row}, {col} clicked");
+        //在更新之后，unit tile不再处理点击事件，以便后续更加灵活的状态机实现
+        AddUIEvent(new UIEvent(UIEventType.Click, (row, col)));
+
+        UnitTile curClickedUnit = Units[row, col];
+        Debug.Log($"curClickedUnit: {curClickedUnit}");
+        switch (curOperatingState)
+        {
+            case OperatingState.NoSelect:
+                if (curClickedUnit != null)
+                {
+                    //显示单位状态和行动范围
+                    SetActiveUnit(curClickedUnit);
+                    if (curClickedUnit.CurrentProperty.team == CurTeam)
+                    {
+                        //如果点击的是自己的单位，那么就进入Selected状态
+                        curOperatingState = OperatingState.Selected;
+                    }
+                }
+
+                break;
+            case OperatingState.Selected:
+                if (curActiveOperations.ContainsKey((row, col)))
+                {
+                    confirmPad = Instantiate(confirmPadPrefab, 
+                        new Vector3(row, col + 1), Quaternion.identity);
+                    curOperatingState = OperatingState.Confirming;
+                }
+                else
+                {
+                    if (curClickedUnit == curActiveUnit)
+                    {
+                        SetActiveUnit(null);
+                        curOperatingState = OperatingState.NoSelect;
+                    }
+                    else
+                    {
+                        SetActiveUnit(curClickedUnit);
+                        if (curClickedUnit != null && curClickedUnit.CurrentProperty.team != CurTeam)
+                        {
+                            curOperatingState = OperatingState.NoSelect;
+                        }
+                    }
+                }
+
+                break;
+            case OperatingState.Confirming:
+                Destroy(confirmPad);
+                confirmPad = null;
+                curOperatingState = OperatingState.Selected;
+                if (curActiveOperations.ContainsKey((row, col)))
+                {
+                    confirmPad = Instantiate(confirmPadPrefab, 
+                        new Vector3(row, col + 1), Quaternion.identity);
+                    curOperatingState = OperatingState.Confirming;
+                }
+                break;
+            default: break;
+        }
+    }
+
+    public GameObject confirmPadPrefab;
+    private GameObject confirmPad; //行动确认按钮
+
+    public void ConfirmOperation()
+    {
+        curOperatingState = OperatingState.NoSelect;
+        SetActiveUnit(null);
+    }
 
     /// <summary>
     /// 现在活跃的单位
@@ -276,6 +353,7 @@ public class BattleManager : MonoBehaviour
 
     private bool UnitCanPass(int posX, int posY)
     {
+        if (posX < 0 || posX >= Width || posY < 0 || posY >= Height) return false;
         ObjectTile objectTile = Objects[posX, posY];
         TerrainTile terrainTile = Terrains[posX, posY];
         return curActiveUnit.CanPass(objectTile, terrainTile);
@@ -344,9 +422,9 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 对于选中的单位，显示其可行操作，若重复选择，则视为取消
+    /// 点击单位事件的处理
     /// </summary>
-    public void UnitClick(UnitTile unitTile)
+    public void OnUnitClick(UnitTile unitTile)
     {
         Debug.Log($"UnitClick at {unitTile.PosX}, {unitTile.PosY}");
 

@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum Layers
 {
@@ -248,14 +249,14 @@ public class TileSet
 /// </summary>
 public enum BlockType
 {
-    Ground,     //平地
-    Water,      //水面
-    Hill,       //山地
-    Road,       //公路
-    Wood,       //林地
-    Block,      //障碍
-    Building,   //建筑
-    Unit        //单位
+    Ground, //平地
+    Water, //水面
+    Hill, //山地
+    Road, //公路
+    Wood, //林地
+    Block, //障碍
+    Building, //建筑
+    Unit //单位
 }
 
 
@@ -279,6 +280,14 @@ public enum AttackType
     Heavy,
 }
 
+[Serializable]
+public enum MovementType
+{
+    Air,
+    Ground,
+    Water
+}
+
 /// <summary>
 /// 全局单位数据定义 定义在Unit.csv中
 /// </summary>
@@ -294,9 +303,12 @@ public class UnitProperty
 
     //攻击类型
     public AttackType attackType;
+    
+    //移动类型（空中单位，地面单位还是海上单位）
+    public MovementType movementType;
 
     public UnitProperty(int team, string name, UnitType type, int hp, int mp, int sight, int atkRange, int atk,
-        AttackType attackType)
+        AttackType attackType, MovementType movementType)
     {
         this.team = team;
         this.name = name;
@@ -307,6 +319,7 @@ public class UnitProperty
         this.atkRange = atkRange;
         this.atk = atk;
         this.attackType = attackType;
+        this.movementType = movementType;
     }
 
     /// <summary>
@@ -323,8 +336,9 @@ public class UnitProperty
         int sight = int.Parse(line["sight"]);
         int atkRange = int.Parse(line["range"]);
         int atk = int.Parse(line["atk"]);
-        AttackType attackType = Enum.Parse<AttackType>(line["attack_type"]);
-        return new UnitProperty(team, name, utype, hp, mp, sight, atkRange, atk, attackType);
+        AttackType attackType = Enum.Parse<AttackType>(line["attack_type"], true);
+        MovementType movementType = Enum.Parse<MovementType>(line["movement_type"], true);
+        return new UnitProperty(team, name, utype, hp, mp, sight, atkRange, atk, attackType, movementType);
     }
 
     public UnitProperty Clone()
@@ -378,7 +392,7 @@ public class Package
     /// 
     /// </summary>
     public Dictionary<string, TiledMap> Maps { get; private set; }
-    
+
     /// <summary>
     /// 包内所有texture路径
     /// </summary>
@@ -405,7 +419,7 @@ public class Package
     private string TerrainDefinePath => $"{PackageName}/Defines/TerrainDef";
 
     private string MapPath => $"{PackageName}/Maps";
-    
+
     public Package(string packageName)
     {
         PackageName = packageName;
@@ -450,6 +464,7 @@ public class Package
             int id = int.Parse(line["id"]);
             UnitProperties.Add(id, UnitProperty.LoadUnitDefine(line));
         }
+
         Debug.Log("UnitDefines load done.");
 
         TerrainTypes = new Dictionary<int, BlockType>();
@@ -469,7 +484,7 @@ public class Package
         {
             Maps.Add(Path.GetFileNameWithoutExtension(mapText.name), new TiledMap(mapText.text));
         }
+
         Debug.Log("maps load done.");
-        
     }
 }

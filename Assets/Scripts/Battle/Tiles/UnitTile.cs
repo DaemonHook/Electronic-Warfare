@@ -10,6 +10,11 @@ public class UnitTile : GameTile
 
     private HPPanel hpPanel;
 
+    public override string ToString()
+    {
+        return $"{CurrentProperty.name} at {(PosX, PosY)} team {CurrentProperty.team}";
+    }
+
     public void Init(UnitProperty property, int x, int y)
     {
         Init(x, y);
@@ -19,22 +24,23 @@ public class UnitTile : GameTile
         RefreshDisplay();
     }
 
-    protected override void ReceiveUIEvent(UIEvent uiEvent)
-    {
-        base.ReceiveUIEvent(uiEvent);
-        switch (uiEvent.Type)
-        {
-            case UIEventType.Click:
-                var (x, y) = ((int, int))uiEvent.Param;
-                if ((x, y) == (PosX, PosY))
-                {
-                    BattleManager.Instance.UnitClick(this);
-                }
-                break;
-            default:
-                break;
-        }
-    }
+    // protected override void ReceiveUIEvent(UIEvent uiEvent)
+    // {
+    //     base.ReceiveUIEvent(uiEvent);
+    //     switch (uiEvent.Type)
+    //     {
+    //         case UIEventType.Click:
+    //             var (x, y) = ((int, int))uiEvent.Param;
+    //             if ((x, y) == (PosX, PosY))
+    //             {
+    //                 BattleManager.Instance.OnUnitClick(this);
+    //             }
+    //
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    // }
 
     public bool Selected { get; set; }
 
@@ -48,12 +54,15 @@ public class UnitTile : GameTile
     /// </summary>
     public bool CanPass(ObjectTile objectTile, TerrainTile terrainTile)
     {
+        if (CurrentProperty.movementType == MovementType.Air) return true;
         if (objectTile != null)
         {
             switch (objectTile.GetBlockType())
             {
                 case BlockType.Road: return true;
-                case BlockType.Water: return false;
+                case BlockType.Water:
+                    if (CurrentProperty.movementType != MovementType.Water) return false;
+                    break;
                 case BlockType.Ground: break;
                 case BlockType.Hill: return false;
                 case BlockType.Block: return false;
@@ -71,7 +80,9 @@ public class UnitTile : GameTile
             switch (terrainTile.GetBlockType())
             {
                 case BlockType.Road: return true;
-                case BlockType.Water: return false;
+                case BlockType.Water:
+                    if (CurrentProperty.movementType != MovementType.Water) return false;
+                    break;
                 case BlockType.Ground: break;
                 case BlockType.Hill: return false;
                 case BlockType.Block: return false;

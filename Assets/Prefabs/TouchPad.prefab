@@ -233,7 +233,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Row: 0
   Col: 0
-  MovableColor: {r: 0.2783019, g: 0.6909088, b: 1, a: 0.8392157}
+  MovableColor: {r: 0.27843142, g: 1, b: 0.979839, a: 0.8392157}
   AttackableColor: {r: 1, g: 0.45845872, b: 0.4198113, a: 0.49803922}
   SelectedColor: {r: 0.58437556, g: 1, b: 0.4481132, a: 0.49803922}
   BuildableColor: {r: 0, g: 0, b: 0, a: 0}
@@ -311,7 +311,7 @@ SpriteRenderer:
   m_SortingLayer: 4
   m_SortingOrder: 40
   m_Sprite: {fileID: 21300000, guid: 4ed1c88032d23498881c0d01a2e59d80, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
