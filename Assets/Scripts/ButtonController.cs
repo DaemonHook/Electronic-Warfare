@@ -4,21 +4,11 @@ using UnityEngine;
 
 public class ButtonController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    // On click
     public void Onclick()
     {
-
+        var button = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+        var maplist = GameApp.GetMapList();
+        int map = maplist.IndexOf(button.name);
+        GameApp.EnterMap(maplist[map]);
     }
 }
