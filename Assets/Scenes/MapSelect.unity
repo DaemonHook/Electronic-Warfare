@@ -404,7 +404,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'LevelName
+  m_Text: 'map2
 
 '
 --- !u!222 &441217463
@@ -485,9 +485,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'LevelName
-
-'
+  m_Text: map3
 --- !u!222 &491494669
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -510,7 +508,7 @@ GameObject:
   - component: {fileID: 531614966}
   - component: {fileID: 531614967}
   m_Layer: 5
-  m_Name: Button
+  m_Name: map1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -555,7 +553,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 3468244779728606172, guid: f37339ae45c649647b3380400bb57e73, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1239,7 +1237,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'LevelName
+  m_Text: 'map1
 
 '
 --- !u!222 &924930550
@@ -1800,7 +1798,6 @@ GameObject:
   - component: {fileID: 1510784446}
   - component: {fileID: 1510784445}
   - component: {fileID: 1510784444}
-  - component: {fileID: 1510784447}
   m_Layer: 5
   m_Name: ExitButton
   m_TagString: Untagged
@@ -1871,9 +1868,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1510784447}
+      - m_Target: {fileID: 1510784442}
         m_TargetAssemblyTypeName: ButtonController, Assembly-CSharp
-        m_MethodName: Onclick
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1921,18 +1918,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1510784442}
   m_CullTransparentMesh: 1
---- !u!114 &1510784447
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1510784442}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3f2ba72f0feeca48b1bac61ab558d54, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1538133050
 GameObject:
   m_ObjectHideFlags: 0
@@ -1947,7 +1932,7 @@ GameObject:
   - component: {fileID: 1538133053}
   - component: {fileID: 1538133052}
   m_Layer: 5
-  m_Name: Button
+  m_Name: map2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2060,7 +2045,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -1046444227985733684, guid: 4b54a4f9a7d04464d864dcbf90eedf13, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2788,7 +2773,7 @@ GameObject:
   - component: {fileID: 1934764671}
   - component: {fileID: 1934764670}
   m_Layer: 5
-  m_Name: Button
+  m_Name: map3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2901,7 +2886,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -5989462958255894664, guid: 927a897c93116194c8fa8e75bca7d3cf, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
