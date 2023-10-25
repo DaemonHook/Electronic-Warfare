@@ -50,7 +50,7 @@ public class TouchPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
         switch (uiEvent.Type)
         {
             case UIEventType.Click:
-                var (x, y) = ((int, int))uiEvent.Param;
+                var (x, y) = ((int, int))uiEvent.Params[0];
 
                 if (x == Row && y == Col)
                 {

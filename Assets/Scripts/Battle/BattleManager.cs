@@ -191,43 +191,84 @@ public class BattleManager : MonoBehaviour
 
 
     #region 事件处理
-
+    
+    /// <summary>
+    /// ui事件队列
+    /// </summary>
     private Queue<UIEvent> uiEventQueue = new Queue<UIEvent>();
+    
+    /// <summary>
+    /// 战斗事件队列
+    /// </summary>
     private Queue<BattleEvent> battleEventQueue = new Queue<BattleEvent>();
-
+    
+    /// <summary>
+    /// 注册的UI事件监听者
+    /// </summary>
     private event Action<UIEvent> registeredUIHandlers;
+    
+    /// <summary>
+    /// 注册的战斗事件监听者
+    /// </summary>
     private event Action<BattleEvent> registeredBattleHandlers;
-
+    
+    /// <summary>
+    /// 监听ui事件
+    /// </summary>
+    /// <param name="action"></param>
     public void RegisterUIEventHandler(Action<UIEvent> action)
     {
         registeredUIHandlers += action;
     }
-
+    
+    /// <summary>
+    /// 取消监听ui事件
+    /// </summary>
+    /// <param name="action"></param>
     public void UnregisterUIEventHandler(Action<UIEvent> action)
     {
         registeredUIHandlers -= action;
     }
-
+    
+    /// <summary>
+    /// 监听战斗事件
+    /// </summary>
+    /// <param name="action"></param>
     public void RegisterBattleEventHandler(Action<BattleEvent> action)
     {
         registeredBattleHandlers += action;
     }
-
+    
+    /// <summary>
+    /// 取消监听战斗事件
+    /// </summary>
+    /// <param name="action"></param>
     public void UnregisterBattleEventHandler(Action<BattleEvent> action)
     {
         registeredBattleHandlers -= action;
     }
-
+    
+    /// <summary>
+    /// 产生ui事件
+    /// </summary>
+    /// <param name="uiEvent"></param>
     public void AddUIEvent(UIEvent uiEvent)
     {
         uiEventQueue.Enqueue(uiEvent);
     }
-
+    
+    /// <summary>
+    /// 产生战斗事件
+    /// </summary>
+    /// <param name="battleEvent"></param>
     public void AddBattleEvent(BattleEvent battleEvent)
     {
         battleEventQueue.Enqueue(battleEvent);
     }
-
+    
+    /// <summary>
+    /// 分发ui事件
+    /// </summary>
     private void HandleUIEvent()
     {
         while (uiEventQueue.Count > 0)
@@ -237,7 +278,10 @@ public class BattleManager : MonoBehaviour
             registeredUIHandlers?.Invoke(uiEvent);
         }
     }
-
+    
+    /// <summary>
+    /// 分发战斗事件
+    /// </summary>
     private void HandleBattleEvent()
     {
         while (battleEventQueue.Count > 0)
@@ -252,7 +296,14 @@ public class BattleManager : MonoBehaviour
     {
         HandleBattleEvent();
         HandleUIEvent();
+        NextActionAfterEvents.Invoke();
+        NextActionAfterEvents = () => { };
     }
+
+    /// <summary>
+    /// 下一帧在事件之后执行的动作（只执行一次）
+    /// </summary>
+    public Action NextActionAfterEvents = () => { };
 
     #endregion
 
@@ -260,7 +311,9 @@ public class BattleManager : MonoBehaviour
 
     #region 玩家操作处理
 
-    // 玩家的操作状态
+    /// <summary>
+    /// 玩家的操作状态
+    /// </summary>
     private enum OperatingState
     {
         NoSelect, //没有选中单位
@@ -270,6 +323,11 @@ public class BattleManager : MonoBehaviour
 
     //当前操作状态
     private OperatingState curOperatingState = OperatingState.NoSelect;
+
+    /// <summary>
+    /// 当前有待确定的操作（即操作确认按钮所确认的工作）
+    /// </summary>
+    private ValueTuple<int, int> curConfirmingOpeartionPos;
 
     public void OnTouchpadClicked(int row, int col)
     {
@@ -297,9 +355,10 @@ public class BattleManager : MonoBehaviour
             case OperatingState.Selected:
                 if (curActiveOperations.ContainsKey((row, col)))
                 {
-                    confirmPad = Instantiate(confirmPadPrefab, 
+                    confirmPad = Instantiate(confirmPadPrefab,
                         new Vector3(row, col + 1), Quaternion.identity);
                     curOperatingState = OperatingState.Confirming;
+                    curConfirmingOpeartionPos = (row, col);
                 }
                 else
                 {
@@ -325,10 +384,11 @@ public class BattleManager : MonoBehaviour
                 curOperatingState = OperatingState.Selected;
                 if (curActiveOperations.ContainsKey((row, col)))
                 {
-                    confirmPad = Instantiate(confirmPadPrefab, 
+                    confirmPad = Instantiate(confirmPadPrefab,
                         new Vector3(row, col + 1), Quaternion.identity);
                     curOperatingState = OperatingState.Confirming;
                 }
+
                 break;
             default: break;
         }
@@ -337,10 +397,15 @@ public class BattleManager : MonoBehaviour
     public GameObject confirmPadPrefab;
     private GameObject confirmPad; //行动确认按钮
 
+    /// <summary>
+    /// 由确定按钮调用，确定当前选中的操作
+    /// </summary>
     public void ConfirmOperation()
     {
-        curOperatingState = OperatingState.NoSelect;
-        SetActiveUnit(null);
+        AddOperation(curActiveUnit, curActiveOperations[curConfirmingOpeartionPos], curConfirmingOpeartionPos);
+        // curOperatingState = OperatingState.NoSelect;
+        // SetActiveUnit(null);
+        NextActionAfterEvents += () => { SetActiveUnit(curActiveUnit); };
     }
 
     /// <summary>
@@ -435,6 +500,33 @@ public class BattleManager : MonoBehaviour
         else
         {
             SetActiveUnit(unitTile);
+        }
+    }
+
+    #endregion
+
+    #region 单位行动系统
+    
+    /// <summary>
+    /// 添加单位行动事件
+    /// </summary>
+    /// <param name="unit">行动的单位</param>
+    /// <param name="type">行动类型</param>
+    /// <param name="param">行动参数</param>
+    public void AddOperation(UnitTile unit, OperationType type, params object[] param)
+    {
+        print($"DoOperation: operation type {type} to {param[0]}");
+        switch (type)
+        {
+            case OperationType.Attack:
+                //TODO add
+                break;
+            case OperationType.Move:
+                ValueTuple<int, int> target = (ValueTuple<int, int>)param[0];
+                
+                break;
+            default:
+                break;
         }
     }
 

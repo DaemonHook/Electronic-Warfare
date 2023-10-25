@@ -19,25 +19,27 @@ public class UIEvent
 {
     public UIEventType Type;
 
-    public object Param;
+    public object[] Params;
 
-    public UIEvent(UIEventType type, object param)
+    public UIEvent(UIEventType type, params object[] @params)
     {
         Type = type;
-        Param = param;
+        Params = @params;
     }
 
     public override string ToString()
     {
-        return $"UIEvent: type: [{Type}] param: [{Param}]";
+        return $"UIEvent: type: [{Type}] param: [{Params}]";
     }
 
-    public Type GetParamType()
+    public Type GetParamType(int index)
     {
-        switch (Param)
+        switch (Type)
         {
             case UIEventType.Click:
-                return (1,1).GetType();
+                if (index == 0)
+                    return (1, 1).GetType();
+                else return null;
             default:
                 return null;
         }

@@ -7,13 +7,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// 确定行动
+/// 操作确认按钮
 /// </summary>
 public class ConfirmPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 {
     public void OnPointerUp(PointerEventData eventData)
     {
         BattleManager.Instance.ConfirmOperation();
+        Destroy(gameObject);
     }
 
     public void OnPointerDown(PointerEventData eventData)

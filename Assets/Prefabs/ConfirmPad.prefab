@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 685321876500049059}
   - component: {fileID: 3376338267691804459}
   - component: {fileID: 1209859113930149178}
+  - component: {fileID: 3954571927970078730}
   m_Layer: 0
-  m_Name: blue_boxCheckmark
+  m_Name: ConfirmPad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -131,3 +132,15 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.0555556, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &3954571927970078730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9077498721083314774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57d23e3e39c4433f9ea66fc4fb8831a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

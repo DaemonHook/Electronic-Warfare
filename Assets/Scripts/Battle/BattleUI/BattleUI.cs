@@ -48,7 +48,7 @@ public class BattleUI : MonoBehaviour
         switch (uiEvent.Type)
         {
             case UIEventType.Click:
-                var (i, j) = (ValueTuple<int, int>)uiEvent.Param;
+                var (i, j) = (ValueTuple<int, int>)uiEvent.Params[0];
                 if (lastClick == (i, j))
                 {
                     LTPanel.SetActive(false);
