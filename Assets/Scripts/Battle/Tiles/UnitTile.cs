@@ -5,9 +5,9 @@ public class UnitTile : GameTile
 {
     public UnitProperty OriginProperty;
     public UnitProperty CurrentProperty;
-    public bool ThisTurnMoved;
-    public bool ThisTurnAttacked;
-
+    public bool ThisTurnMoved { get; private set; }
+    public bool ThisTurnAttacked { get; private set; }
+    [Header("移动动画的速度")] public float MoveAniSpeed;
     private HPPanel hpPanel;
 
     public override string ToString()
@@ -96,5 +96,19 @@ public class UnitTile : GameTile
         }
 
         return true;
+    }
+
+    protected override void ReceiveBattleEvent(BattleEvent battleEvent)
+    {
+        switch (battleEvent.Type)
+        {
+            case BattleEventType.Attack:
+                //TODO
+                break;
+            case BattleEventType.Move:
+                break;
+            default:
+                break;
+        }
     }
 }
