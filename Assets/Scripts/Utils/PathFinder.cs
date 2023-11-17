@@ -2,6 +2,8 @@
 using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 
 /// <summary>
 /// 寻路算法
@@ -32,6 +34,11 @@ public static class PathFinder
         public override string ToString()
         {
             return $"PathNode:({x}, {y})";
+        }
+
+        public bool Equals(Vector2Int position)
+        {
+            return this.x == position.x && this.y == position.y;
         }
     }
 

@@ -17,29 +17,6 @@ public enum BattleEventType
 [Serializable]
 public class BattleEvent
 {
-    /// <summary>
-    /// 获取战斗事件的类型所对应的参数类型
-    /// </summary>
-    /// <param name="battleEventType">战斗事件类型</param>
-    /// <param name="index">参数索引</param>
-    /// <returns>参数类型</returns>
-    public static Type GetBattleEventParamsType(BattleEventType battleEventType, int index)
-    {
-        return battleEventType switch
-        {
-            BattleEventType.Attack =>
-                //TODO 添加类型
-                null,
-            BattleEventType.Move => index switch
-            {
-                0 => typeof(ValueTuple<int, int>),
-                1 => typeof(ValueTuple<int, int>),
-                _ => null
-            },
-            _ => null
-        };
-    }
-
     public BattleEventType Type;
     public object[] Params;
 

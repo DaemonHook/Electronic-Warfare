@@ -21,6 +21,16 @@ public class GameTile : MonoBehaviour
     /// </summary>
     public int PosY { get; private set; }
 
+    public Vector2Int LogicPosition
+    {
+        get => new(PosX, PosY);
+        set
+        {
+            PosX = value.x;
+            PosY = value.y;
+        }
+    }
+    
     public virtual void Init(int x, int y)
     {
         PosX = x;

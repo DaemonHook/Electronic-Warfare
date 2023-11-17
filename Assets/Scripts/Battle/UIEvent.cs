@@ -31,17 +31,4 @@ public class UIEvent
     {
         return $"UIEvent: type: [{Type}] param: [{Params}]";
     }
-
-    public Type GetParamType(int index)
-    {
-        switch (Type)
-        {
-            case UIEventType.Click:
-                if (index == 0)
-                    return (1, 1).GetType();
-                else return null;
-            default:
-                return null;
-        }
-    }
 }

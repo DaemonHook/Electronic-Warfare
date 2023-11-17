@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class UnitTile : GameTile
 {
@@ -98,6 +100,42 @@ public class UnitTile : GameTile
         return true;
     }
 
+    private void FaceToRight()
+    {
+        transform.localScale = new(1.0f, 1.0f, 1.0f);
+    }
+
+    private void FaceToLeft()
+    {
+        transform.localScale = new(-1.0f, 1.0f, 1.0f);
+    }
+
+    private Vector2Int curTarget;
+
+    private void MoveByPath(List<Vector2Int> path)
+    {
+        curTarget = LogicPosition;
+        Sequence moveSequence = DOTween.Sequence();
+        moveSequence.OnUpdate(() =>
+        {
+            if (((int)transform.position.x) < curTarget.x)
+            {
+                FaceToRight();
+            }
+            else if ((int)transform.position.x > curTarget.x)
+            {
+                FaceToLeft();
+            }
+        });
+        foreach (var pos in path)
+        {
+            Tween move = transform.DOMove(new Vector3(pos.x, pos.y), Setting.SpeedPerTile);
+            move.OnStart(() => { curTarget = pos; });
+        }
+
+        moveSequence.Play();
+    }
+
     protected override void ReceiveBattleEvent(BattleEvent battleEvent)
     {
         switch (battleEvent.Type)
@@ -106,8 +144,14 @@ public class UnitTile : GameTile
                 //TODO
                 break;
             case BattleEventType.Move:
-                break;
-            default:
+
+                Vector2Int startPos = (Vector2Int)battleEvent.Params[0];
+                if (startPos != LogicPosition) break;
+                Vector2Int endPos = ((Vector2Int)battleEvent.Params[1]);
+                List<Vector2Int> path = ((List<Vector2Int>)battleEvent.Params[2]);
+                MoveByPath(path);
+                LogicPosition = endPos;
+                Debug.Log($"{name} move to {endPos}");
                 break;
         }
     }

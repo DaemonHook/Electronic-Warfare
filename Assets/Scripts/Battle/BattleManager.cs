@@ -5,9 +5,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.Assertions;
 using UnityEngine.Serialization;
 
 public static class LayerOrders
@@ -27,8 +27,18 @@ public class BattleManager : MonoBehaviour
     public string MapName;
 
     public TiledMap Map { get; set; }
-    [FormerlySerializedAs("RowSize")] public int Height; //战场大小
-    [FormerlySerializedAs("ColSize")] public int Width; //战场大小
+    public int Height; //战场大小
+    public int Width; //战场大小
+
+    /// <summary>
+    /// 将逻辑上的单位位置转化为实际的世界位置
+    /// </summary>
+    /// <param name="logicPosition"></param>
+    /// <returns></returns>
+    public Vector3 GetRealWorldPosition(Vector2Int logicPosition)
+    {
+        return new Vector3(logicPosition.x, logicPosition.y, 0);
+    }
 
     public GameObject TouchPad; //触控板的prefab
     public Package Package { get; private set; } //当前加载的package
@@ -48,7 +58,7 @@ public class BattleManager : MonoBehaviour
         {
             for (int j = 0; j < Height; j++)
             {
-                var go = GameObject.Instantiate(TouchPad, new Vector3((float)i, (float)j, 0f), Quaternion.identity,
+                var go = GameObject.Instantiate(TouchPad, new Vector3(i, j, 0f), Quaternion.identity,
                     transform);
                 go.transform.SetParent(GameObject.Find("Manager/TouchPads").transform);
                 go.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.TouchPad;
@@ -66,6 +76,8 @@ public class BattleManager : MonoBehaviour
     private void Start()
     {
         Init();
+        RegisterBattleEventHandler(ReceiveBattleEvent);
+        RegisterUIEventHandler(ReceiveUIEvent);
     }
 
     private void GetMapName()
@@ -132,8 +144,7 @@ public class BattleManager : MonoBehaviour
                 var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
                 Units[i, j] = go.GetComponent<UnitTile>();
                 UnitGOs[i, j] = go;
-                int t;
-                if ((t = Units[i, j].CurrentProperty.team) != -1)
+                if ((Units[i, j].CurrentProperty.team) != -1)
                 {
                     if (TeamUnits.ContainsKey(Units[i, j].CurrentProperty.team))
                     {
@@ -191,27 +202,27 @@ public class BattleManager : MonoBehaviour
 
 
     #region 事件处理
-    
+
     /// <summary>
     /// ui事件队列
     /// </summary>
     private Queue<UIEvent> uiEventQueue = new Queue<UIEvent>();
-    
+
     /// <summary>
     /// 战斗事件队列
     /// </summary>
     private Queue<BattleEvent> battleEventQueue = new Queue<BattleEvent>();
-    
+
     /// <summary>
     /// 注册的UI事件监听者
     /// </summary>
     private event Action<UIEvent> registeredUIHandlers;
-    
+
     /// <summary>
     /// 注册的战斗事件监听者
     /// </summary>
     private event Action<BattleEvent> registeredBattleHandlers;
-    
+
     /// <summary>
     /// 监听ui事件
     /// </summary>
@@ -220,7 +231,7 @@ public class BattleManager : MonoBehaviour
     {
         registeredUIHandlers += action;
     }
-    
+
     /// <summary>
     /// 取消监听ui事件
     /// </summary>
@@ -229,7 +240,7 @@ public class BattleManager : MonoBehaviour
     {
         registeredUIHandlers -= action;
     }
-    
+
     /// <summary>
     /// 监听战斗事件
     /// </summary>
@@ -238,7 +249,7 @@ public class BattleManager : MonoBehaviour
     {
         registeredBattleHandlers += action;
     }
-    
+
     /// <summary>
     /// 取消监听战斗事件
     /// </summary>
@@ -247,7 +258,7 @@ public class BattleManager : MonoBehaviour
     {
         registeredBattleHandlers -= action;
     }
-    
+
     /// <summary>
     /// 产生ui事件
     /// </summary>
@@ -256,7 +267,7 @@ public class BattleManager : MonoBehaviour
     {
         uiEventQueue.Enqueue(uiEvent);
     }
-    
+
     /// <summary>
     /// 产生战斗事件
     /// </summary>
@@ -265,7 +276,7 @@ public class BattleManager : MonoBehaviour
     {
         battleEventQueue.Enqueue(battleEvent);
     }
-    
+
     /// <summary>
     /// 分发ui事件
     /// </summary>
@@ -278,7 +289,7 @@ public class BattleManager : MonoBehaviour
             registeredUIHandlers?.Invoke(uiEvent);
         }
     }
-    
+
     /// <summary>
     /// 分发战斗事件
     /// </summary>
@@ -292,18 +303,70 @@ public class BattleManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 添加单位行动事件
+    /// </summary>
+    /// <param name="unit">行动的单位</param>
+    /// <param name="type">行动类型</param>
+    /// <param name="param">行动参数</param>
+    public void AddUnitOperation(UnitTile unit, OperationType type, params object[] param)
+    {
+        print($"DoOperation: operation type {type} to {param[0]}");
+        switch (type)
+        {
+            case OperationType.Attack:
+                //TODO add
+                break;
+            case OperationType.Move:
+                Vector2Int target = (Vector2Int)param[0];
+                List<Vector2Int> path = (List<Vector2Int>)param[1];
+                AddBattleEvent(new BattleEvent(BattleEventType.Move, unit.LogicPosition, target, path));
+                break;
+        }
+    }
+
     private void FixedUpdate()
     {
         HandleBattleEvent();
         HandleUIEvent();
-        NextActionAfterEvents.Invoke();
-        NextActionAfterEvents = () => { };
     }
 
     /// <summary>
-    /// 下一帧在事件之后执行的动作（只执行一次）
+    /// 为了逻辑上的完备和将来重构的方便，BattleManager也会监听战斗事件
     /// </summary>
-    public Action NextActionAfterEvents = () => { };
+    public void ReceiveBattleEvent(BattleEvent battleEvent)
+    {
+        switch (battleEvent.Type)
+        {
+            case BattleEventType.Move:
+                Vector2Int startPos = (Vector2Int)battleEvent.Params[0];
+                Vector2Int endPos = ((Vector2Int)battleEvent.Params[1]);
+                if (Units[endPos.x, endPos.y] != null)
+                    throw new Exception("duplicated unit position");
+                Units[endPos.x, endPos.y] = Units[startPos.x, startPos.y];
+                Units[startPos.x, startPos.y] = null;
+                break;
+            case BattleEventType.Attack:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    public void ReceiveUIEvent(UIEvent uiEvent)
+    {
+        switch (uiEvent.Type)
+        {
+            case UIEventType.Click:
+                break;
+            case UIEventType.Select:
+                UnitTile tile = ((UnitTile)uiEvent.Params[0]);
+                SelectUnit(tile);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
 
     #endregion
 
@@ -321,19 +384,21 @@ public class BattleManager : MonoBehaviour
         Confirming, //指定了操作，确认中 
     }
 
-    //当前操作状态
+    //  当前操作状态
     private OperatingState curOperatingState = OperatingState.NoSelect;
 
     /// <summary>
-    /// 当前有待确定的操作（即操作确认按钮所确认的工作）
+    /// 当前待确定的操作发生的位置
     /// </summary>
-    private ValueTuple<int, int> curConfirmingOpeartionPos;
+    private Vector2Int curOperationPos;
 
     public void OnTouchpadClicked(int row, int col)
     {
         print($"Touchpad at {row}, {col} clicked");
         //在更新之后，unit tile不再处理点击事件，以便后续更加灵活的状态机实现
         AddUIEvent(new UIEvent(UIEventType.Click, (row, col)));
+        
+        curOperationPos = new Vector2Int(row, col);
 
         UnitTile curClickedUnit = Units[row, col];
         Debug.Log($"curClickedUnit: {curClickedUnit}");
@@ -343,7 +408,7 @@ public class BattleManager : MonoBehaviour
                 if (curClickedUnit != null)
                 {
                     //显示单位状态和行动范围
-                    SetActiveUnit(curClickedUnit);
+                    SelectUnit(curClickedUnit);
                     if (curClickedUnit.CurrentProperty.team == CurTeam)
                     {
                         //如果点击的是自己的单位，那么就进入Selected状态
@@ -353,23 +418,22 @@ public class BattleManager : MonoBehaviour
 
                 break;
             case OperatingState.Selected:
-                if (curActiveOperations.ContainsKey((row, col)))
+                if (curActiveOperations.ContainsKey(new(row, col)))
                 {
                     confirmPad = Instantiate(confirmPadPrefab,
                         new Vector3(row, col + 1), Quaternion.identity);
                     curOperatingState = OperatingState.Confirming;
-                    curConfirmingOpeartionPos = (row, col);
                 }
                 else
                 {
                     if (curClickedUnit == curActiveUnit)
                     {
-                        SetActiveUnit(null);
+                        SelectUnit(null);
                         curOperatingState = OperatingState.NoSelect;
                     }
                     else
                     {
-                        SetActiveUnit(curClickedUnit);
+                        SelectUnit(curClickedUnit);
                         if (curClickedUnit != null && curClickedUnit.CurrentProperty.team != CurTeam)
                         {
                             curOperatingState = OperatingState.NoSelect;
@@ -382,7 +446,7 @@ public class BattleManager : MonoBehaviour
                 Destroy(confirmPad);
                 confirmPad = null;
                 curOperatingState = OperatingState.Selected;
-                if (curActiveOperations.ContainsKey((row, col)))
+                if (curActiveOperations.ContainsKey(new(row, col)))
                 {
                     confirmPad = Instantiate(confirmPadPrefab,
                         new Vector3(row, col + 1), Quaternion.identity);
@@ -390,7 +454,6 @@ public class BattleManager : MonoBehaviour
                 }
 
                 break;
-            default: break;
         }
     }
 
@@ -402,19 +465,57 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     public void ConfirmOperation()
     {
-        AddOperation(curActiveUnit, curActiveOperations[curConfirmingOpeartionPos], curConfirmingOpeartionPos);
-        // curOperatingState = OperatingState.NoSelect;
-        // SetActiveUnit(null);
-        NextActionAfterEvents += () => { SetActiveUnit(curActiveUnit); };
+        var curOperationType = curActiveOperations[curOperationPos];
+        switch (curOperationType)
+        {
+            case OperationType.Attack:
+                throw new Exception("尚未实现");
+            case OperationType.Move:
+
+                // 获取移动路径
+                PathFinder.PathNode curNode = curUnitMovableNodes.Find(node => node.Equals(curOperationPos));
+                if (curNode == null)
+                    throw new Exception("curNode not in curUnitMovableNodes");
+                List<Vector2Int> path = new List<Vector2Int>();
+
+                while (curNode != null)
+                {
+                    path.Add(new(curNode.x, curNode.y));
+                    curNode = curNode.preNode;
+                }
+
+                // 在路径中删除单位当前位置
+                path.RemoveAt(path.Count - 1);
+
+                // 节点为倒序排列，所以需要将其反向
+                path.Reverse();
+
+                string s = "";
+                foreach (var n in path)
+                {
+                    s += n.ToString() + ' ';
+                }
+
+                Debug.Log("path: " + s);
+
+                AddUnitOperation(curActiveUnit, OperationType.Move, curOperationPos, path);
+                break;
+        }
+
+        AddUIEvent(new UIEvent(UIEventType.Select, curActiveUnit));
     }
 
     /// <summary>
     /// 现在活跃的单位
     /// </summary>
-    private UnitTile curActiveUnit = null;
+    private UnitTile curActiveUnit;
 
-    private Dictionary<ValueTuple<int, int>, OperationType> curActiveOperations =
-        new Dictionary<(int, int), OperationType>();
+    /// <summary>
+    /// 现在活跃的单位可以移动的节点
+    /// </summary>
+    private List<PathFinder.PathNode> curUnitMovableNodes;
+
+    private Dictionary<Vector2Int, OperationType> curActiveOperations = new();
 
     private bool UnitCanPass(int posX, int posY)
     {
@@ -424,23 +525,27 @@ public class BattleManager : MonoBehaviour
         return curActiveUnit.CanPass(objectTile, terrainTile);
     }
 
+
     /// <summary>
     /// 设置当前选中的单位（若为null则为取消选择）
     /// </summary>
-    private void SetActiveUnit(UnitTile unitTile)
+    private void SelectUnit(UnitTile unitTile)
     {
         curActiveUnit = null;
         ClearOpeartionsDisplay();
         curActiveOperations.Clear();
+        
         if (unitTile != null)
         {
+            string tmp = "";
+
             // 刷新可行动作
 
             // 添加移动动作
             curActiveUnit = unitTile;
-            var curList = PathFinder.Find(unitTile.PosX, unitTile.PosY,
+            curUnitMovableNodes = PathFinder.Find(unitTile.PosX, unitTile.PosY,
                 // 单位可以通过地形且该格子无其他单位
-                unitTile.CurrentProperty.mp, (int x, int y) =>
+                unitTile.CurrentProperty.mp, (x, y) =>
                 {
                     if (UnitCanPass(x, y))
                     {
@@ -449,23 +554,28 @@ public class BattleManager : MonoBehaviour
 
                     return false;
                 });
-            foreach (var node in curList)
+            foreach (var node in curUnitMovableNodes)
             {
                 //print(node);
-                curActiveOperations.Add((node.x, node.y), OperationType.Move);
+                curActiveOperations.Add(new(node.x, node.y), OperationType.Move);
+                tmp += $"({node.x}, {node.y}) ";
             }
+            
+            Debug.Log($"select unit, active actions at: {tmp}");
 
             //TODO：加入其他动作
         }
+
+        
 
         DisplayActiveOperations();
     }
 
     private void ClearOpeartionsDisplay()
     {
-        foreach (var (i, j) in curActiveOperations.Keys)
+        foreach (var p in curActiveOperations.Keys)
         {
-            TouchPads[i, j].SetControlState(ControlState.None);
+            TouchPads[p.x, p.y].SetControlState(ControlState.None);
         }
     }
 
@@ -477,11 +587,10 @@ public class BattleManager : MonoBehaviour
             switch (type)
             {
                 case OperationType.Move:
-                    TouchPads[pos.Item1, pos.Item2].SetControlState(ControlState.Moveable);
+                    TouchPads[pos.x, pos.y].SetControlState(ControlState.Moveable);
                     break;
                 case OperationType.Attack:
                     break;
-                default: break;
             }
         }
     }
@@ -495,38 +604,11 @@ public class BattleManager : MonoBehaviour
 
         if (curActiveUnit == unitTile)
         {
-            SetActiveUnit(null);
+            SelectUnit(null);
         }
         else
         {
-            SetActiveUnit(unitTile);
-        }
-    }
-
-    #endregion
-
-    #region 单位行动系统
-    
-    /// <summary>
-    /// 添加单位行动事件
-    /// </summary>
-    /// <param name="unit">行动的单位</param>
-    /// <param name="type">行动类型</param>
-    /// <param name="param">行动参数</param>
-    public void AddOperation(UnitTile unit, OperationType type, params object[] param)
-    {
-        print($"DoOperation: operation type {type} to {param[0]}");
-        switch (type)
-        {
-            case OperationType.Attack:
-                //TODO add
-                break;
-            case OperationType.Move:
-                ValueTuple<int, int> target = (ValueTuple<int, int>)param[0];
-                
-                break;
-            default:
-                break;
+            SelectUnit(unitTile);
         }
     }
 
