@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using DG.Tweening;
 
@@ -115,25 +116,21 @@ public class UnitTile : GameTile
     private void MoveByPath(List<Vector2Int> path)
     {
         curTarget = LogicPosition;
-        Sequence moveSequence = DOTween.Sequence();
-        moveSequence.OnUpdate(() =>
+        Vector3[] pathArr = (from node in path select new Vector3(node.x, node.y)).ToArray();
+        
+        // 由于素材特性，改变朝向会美观一点
+        if (path.Last().x < transform.position.x)
         {
-            if (((int)transform.position.x) < curTarget.x)
-            {
-                FaceToRight();
-            }
-            else if ((int)transform.position.x > curTarget.x)
-            {
-                FaceToLeft();
-            }
-        });
-        foreach (var pos in path)
-        {
-            Tween move = transform.DOMove(new Vector3(pos.x, pos.y), Setting.SpeedPerTile);
-            move.OnStart(() => { curTarget = pos; });
+            FaceToLeft();
         }
+        else
+        {
+            FaceToRight();
+        }
+        
+        
+        transform.DOPath(pathArr, Setting.SpeedPerTile);
 
-        moveSequence.Play();
     }
 
     protected override void ReceiveBattleEvent(BattleEvent battleEvent)

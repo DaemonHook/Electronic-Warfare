@@ -537,7 +537,7 @@ public class BattleManager : MonoBehaviour
         
         if (unitTile != null)
         {
-            string tmp = "";
+            // string tmp = "";
 
             // 刷新可行动作
 
@@ -556,12 +556,12 @@ public class BattleManager : MonoBehaviour
                 });
             foreach (var node in curUnitMovableNodes)
             {
-                //print(node);
-                curActiveOperations.Add(new(node.x, node.y), OperationType.Move);
-                tmp += $"({node.x}, {node.y}) ";
+            //     //print(node);
+            curActiveOperations.Add(new(node.x, node.y), OperationType.Move);
+            //     tmp += $"({node.x}, {node.y}) ";
             }
             
-            Debug.Log($"select unit, active actions at: {tmp}");
+            // Debug.Log($"select unit, active actions at: {tmp}");
 
             //TODO：加入其他动作
         }

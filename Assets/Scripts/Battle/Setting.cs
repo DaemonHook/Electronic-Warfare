@@ -1,4 +1,4 @@
 public static class Setting
 {
-    public static float SpeedPerTile = 0.25f;
+    public static float SpeedPerTile = 1.0f;
 }

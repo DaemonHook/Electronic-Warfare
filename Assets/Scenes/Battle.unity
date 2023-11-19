@@ -806,7 +806,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   leftDown: {x: 0, y: 0}
   upRight: {x: 0, y: 0}
-  tolerance: 4
+  tolerance: 3
   IndragThreshold: 0.1
   decelerationRate: 0.1
   m_camera: {fileID: 0}
