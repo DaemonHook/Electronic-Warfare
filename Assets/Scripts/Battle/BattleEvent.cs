@@ -7,8 +7,9 @@ using System.Collections.Generic;
 [Serializable]
 public enum BattleEventType
 {
-    Move, //移动
-    Attack, //攻击
+    Move,       // 移动
+    Attack,     // 攻击
+    NextTurn,   // 结束回合
 }
 
 /// <summary>

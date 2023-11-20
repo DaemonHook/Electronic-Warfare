@@ -397,7 +397,7 @@ public class BattleManager : MonoBehaviour
         print($"Touchpad at {row}, {col} clicked");
         //在更新之后，unit tile不再处理点击事件，以便后续更加灵活的状态机实现
         AddUIEvent(new UIEvent(UIEventType.Click, (row, col)));
-        
+
         curOperationPos = new Vector2Int(row, col);
 
         UnitTile curClickedUnit = Units[row, col];
@@ -534,7 +534,7 @@ public class BattleManager : MonoBehaviour
         curActiveUnit = null;
         ClearOpeartionsDisplay();
         curActiveOperations.Clear();
-        
+
         if (unitTile != null)
         {
             // string tmp = "";
@@ -543,30 +543,32 @@ public class BattleManager : MonoBehaviour
 
             // 添加移动动作
             curActiveUnit = unitTile;
-            curUnitMovableNodes = PathFinder.Find(unitTile.PosX, unitTile.PosY,
-                // 单位可以通过地形且该格子无其他单位
-                unitTile.CurrentProperty.mp, (x, y) =>
-                {
-                    if (UnitCanPass(x, y))
-                    {
-                        return Units[x, y] == null;
-                    }
-
-                    return false;
-                });
-            foreach (var node in curUnitMovableNodes)
+            if (curActiveUnit.CanMove)
             {
-            //     //print(node);
-            curActiveOperations.Add(new(node.x, node.y), OperationType.Move);
-            //     tmp += $"({node.x}, {node.y}) ";
-            }
-            
-            // Debug.Log($"select unit, active actions at: {tmp}");
+                curUnitMovableNodes = PathFinder.Find(unitTile.PosX, unitTile.PosY,
+                    // 单位可以通过地形且该格子无其他单位
+                    unitTile.CurrentProperty.mp, (x, y) =>
+                    {
+                        if (UnitCanPass(x, y))
+                        {
+                            return Units[x, y] == null;
+                        }
 
+                        return false;
+                    });
+                foreach (var node in curUnitMovableNodes)
+                {
+                    curActiveOperations.Add(new(node.x, node.y), OperationType.Move);
+                }
+            }
+
+            if (curActiveUnit.CanAttack)
+            {
+                
+            }
             //TODO：加入其他动作
         }
 
-        
 
         DisplayActiveOperations();
     }

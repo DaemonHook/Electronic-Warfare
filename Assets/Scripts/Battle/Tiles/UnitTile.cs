@@ -10,8 +10,10 @@ public class UnitTile : GameTile
     public UnitProperty CurrentProperty;
     public bool ThisTurnMoved { get; private set; }
     public bool ThisTurnAttacked { get; private set; }
-    [Header("移动动画的速度")] public float MoveAniSpeed;
     private HPPanel hpPanel;
+
+    public bool CanMove { get; private set; }
+    public bool CanAttack { get; private set; }
 
     public override string ToString()
     {
@@ -117,7 +119,7 @@ public class UnitTile : GameTile
     {
         curTarget = LogicPosition;
         Vector3[] pathArr = (from node in path select new Vector3(node.x, node.y)).ToArray();
-        
+
         // 由于素材特性，改变朝向会美观一点
         if (path.Last().x < transform.position.x)
         {
@@ -127,10 +129,26 @@ public class UnitTile : GameTile
         {
             FaceToRight();
         }
-        
-        
-        transform.DOPath(pathArr, Setting.SpeedPerTile);
 
+        transform.DOPath(pathArr, Setting.SpeedPerTile);
+    }
+
+    /// <summary>
+    /// 单位进行下一回合
+    /// </summary>
+    /// <param name="team">下一回合行动队伍</param>
+    protected virtual void NextTurn(int team)
+    {
+        if (team == CurrentProperty.team)
+        {
+            CanMove = true;
+            CanAttack = true;
+        }
+        else
+        {
+            CanMove = false;
+            CanAttack = false;
+        }
     }
 
     protected override void ReceiveBattleEvent(BattleEvent battleEvent)
@@ -138,18 +156,24 @@ public class UnitTile : GameTile
         switch (battleEvent.Type)
         {
             case BattleEventType.Attack:
-                //TODO
+                
                 break;
             case BattleEventType.Move:
-
                 Vector2Int startPos = (Vector2Int)battleEvent.Params[0];
                 if (startPos != LogicPosition) break;
                 Vector2Int endPos = ((Vector2Int)battleEvent.Params[1]);
                 List<Vector2Int> path = ((List<Vector2Int>)battleEvent.Params[2]);
                 MoveByPath(path);
                 LogicPosition = endPos;
+                CanMove = false;
                 Debug.Log($"{name} move to {endPos}");
                 break;
+            case BattleEventType.NextTurn:
+                int team = ((int)battleEvent.Params[0]);
+                NextTurn(team);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 }
