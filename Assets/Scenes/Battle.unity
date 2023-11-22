@@ -357,6 +357,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 222929700}
   m_CullTransparentMesh: 1
+--- !u!1 &237085330
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 237085331}
+  m_Layer: 0
+  m_Name: Effects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &237085331
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 237085330}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1409099104}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &242302540
 GameObject:
   m_ObjectHideFlags: 0
@@ -1676,6 +1707,7 @@ GameObject:
   - component: {fileID: 1409099104}
   - component: {fileID: 1409099105}
   - component: {fileID: 1409099106}
+  - component: {fileID: 1409099107}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -1701,6 +1733,7 @@ Transform:
   - {fileID: 864931472}
   - {fileID: 110845135}
   - {fileID: 827120409}
+  - {fileID: 237085331}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1409099105
@@ -1738,6 +1771,23 @@ MonoBehaviour:
   ObjectParent: {fileID: 110845135}
   UnitParent: {fileID: 827120409}
   HpPrefab: {fileID: 1158362482741626710, guid: 28759e911aa7a4218809482d68ebd876, type: 3}
+--- !u!114 &1409099107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409099103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08e7c9150cbff954ca13526c4f892536, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Instance: {fileID: 0}
+  EffectLayer: {fileID: 237085330}
+  Effects:
+  - {fileID: 6461930120618306911, guid: e40180528935e18499aa4b10ffda747d, type: 3}
+  - {fileID: 290161378283385209, guid: 0538d7fcddf73b84da2c7b0165b7ee89, type: 3}
 --- !u!1 &1473029264
 GameObject:
   m_ObjectHideFlags: 0
