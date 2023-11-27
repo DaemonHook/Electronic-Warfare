@@ -57,9 +57,9 @@ public class BattleUI : MonoBehaviour
                 }
                 LTPanel.SetActive(true);
                 lastClick = (i, j);
-                GameObject terrainGO = BattleManager.Instance.TerrainGOs[i, j];
-                GameObject objectGO = BattleManager.Instance.ObjectGOs[i, j];
-                GameObject unitGO = BattleManager.Instance.UnitGOs[i, j];
+                GameObject terrainGO = BattleManager.Instance.Terrains[i, j]?.gameObject;
+                GameObject objectGO = BattleManager.Instance.Objects[i, j]?.gameObject;
+                GameObject unitGO = BattleManager.Instance.Units[i, j]?.gameObject;
 
                 Sprite terrainSprite = null;
                 if (terrainGO != null)
@@ -80,6 +80,7 @@ public class BattleUI : MonoBehaviour
 
                 if (unitGO != null)
                 {
+                    Debug.Log($"show unit info at {i}, {j}");
                     SetArmyViewActive(true);
                     UnitTile unitTile = unitGO.GetComponent<UnitTile>();
                     UnitProperty prop = unitTile.CurrentProperty;

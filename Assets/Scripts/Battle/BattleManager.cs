@@ -29,6 +29,14 @@ public class BattleManager : MonoBehaviour
     public TiledMap Map { get; set; }
     public int Height; //战场大小
     public int Width; //战场大小
+    public Vector2Int BattleFieldSize
+    {
+        get
+        {
+            return new Vector2Int(Width, Height);
+        }
+    }
+
 
     /// <summary>
     /// 将逻辑上的单位位置转化为实际的世界位置
@@ -44,11 +52,9 @@ public class BattleManager : MonoBehaviour
     public Package Package { get; private set; } //当前加载的package
 
     public TerrainTile[,] Terrains;
-    public GameObject[,] TerrainGOs;
     public ObjectTile[,] Objects;
-    public GameObject[,] ObjectGOs;
     public UnitTile[,] Units;
-    public GameObject[,] UnitGOs;
+    
     public TouchPad[,] TouchPads;
 
     private void CreateTouchPads()
@@ -78,6 +84,9 @@ public class BattleManager : MonoBehaviour
         Init();
         RegisterBattleEventHandler(ReceiveBattleEvent);
         RegisterUIEventHandler(ReceiveUIEvent);
+
+        // 第一个回合开始
+        AddBattleEvent(new BattleEvent(BattleEventType.NextTurn, 1));
     }
 
     private void GetMapName()
@@ -131,7 +140,6 @@ public class BattleManager : MonoBehaviour
     private void CreateUnits()
     {
         Units = new UnitTile[Width, Height];
-        UnitGOs = new GameObject[Width, Height];
         var unitIds = Map.Unit;
         TeamCount = 0;
         TeamUnits = new Dictionary<int, List<UnitTile>>();
@@ -143,7 +151,6 @@ public class BattleManager : MonoBehaviour
                 var prefab = Package.Prefabs[unitIds[i, j].tileId];
                 var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
                 Units[i, j] = go.GetComponent<UnitTile>();
-                UnitGOs[i, j] = go;
                 if ((Units[i, j].CurrentProperty.team) != -1)
                 {
                     if (TeamUnits.ContainsKey(Units[i, j].CurrentProperty.team))
@@ -158,7 +165,6 @@ public class BattleManager : MonoBehaviour
     private void CreateObjects()
     {
         Objects = new ObjectTile[Width, Height];
-        ObjectGOs = new GameObject[Width, Height];
         var objectIds = Map.Object;
         for (int i = 0; i < Width; i++)
         {
@@ -169,7 +175,6 @@ public class BattleManager : MonoBehaviour
                     var prefab = Package.Prefabs[objectIds[i, j].tileId];
                     var go = Factory.Instance.ObjectFactory(prefab, i, j, Package.TerrainTypes[objectIds[i, j].tileId]);
                     Objects[i, j] = go.GetComponent<ObjectTile>();
-                    ObjectGOs[i, j] = go;
                 }
             }
         }
@@ -178,7 +183,6 @@ public class BattleManager : MonoBehaviour
     private void CreateTerrains()
     {
         Terrains = new TerrainTile[Width, Height];
-        TerrainGOs = new GameObject[Width, Height];
         var terrainIds = Map.Terrain;
         for (int i = 0; i < Width; i++)
         {
@@ -189,7 +193,6 @@ public class BattleManager : MonoBehaviour
                     var prefab = Package.Prefabs[terrainIds[i, j].tileId];
                     var go = Factory.Instance.TerrainFactory(prefab, i, j,
                         Package.TerrainTypes[terrainIds[i, j].tileId]);
-                    TerrainGOs[i, j] = go;
                     Terrains[i, j] = go.GetComponent<TerrainTile>();
                 }
             }
@@ -340,13 +343,16 @@ public class BattleManager : MonoBehaviour
         {
             case BattleEventType.Move:
                 Vector2Int startPos = (Vector2Int)battleEvent.Params[0];
-                Vector2Int endPos = ((Vector2Int)battleEvent.Params[1]);
+                Vector2Int endPos = (Vector2Int)battleEvent.Params[1];
                 if (Units[endPos.x, endPos.y] != null)
                     throw new Exception("duplicated unit position");
                 Units[endPos.x, endPos.y] = Units[startPos.x, startPos.y];
                 Units[startPos.x, startPos.y] = null;
+                Debug.Log($"unit at {startPos} move to {endPos}");
                 break;
             case BattleEventType.Attack:
+                break;
+            case BattleEventType.NextTurn:
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -361,7 +367,7 @@ public class BattleManager : MonoBehaviour
                 break;
             case UIEventType.Select:
                 UnitTile tile = ((UnitTile)uiEvent.Params[0]);
-                SelectUnit(tile);
+                DisplayUnitOperations(tile);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -371,6 +377,8 @@ public class BattleManager : MonoBehaviour
     #endregion
 
     public int CurTeam { get; set; } = 1; //当前行动的队伍
+
+
 
     #region 玩家操作处理
 
@@ -408,9 +416,10 @@ public class BattleManager : MonoBehaviour
                 if (curClickedUnit != null)
                 {
                     //显示单位状态和行动范围
-                    SelectUnit(curClickedUnit);
+                    DisplayUnitOperations(curClickedUnit);
                     if (curClickedUnit.CurrentProperty.team == CurTeam)
                     {
+                        Debug.Log($"entered Select Mode");
                         //如果点击的是自己的单位，那么就进入Selected状态
                         curOperatingState = OperatingState.Selected;
                     }
@@ -428,12 +437,12 @@ public class BattleManager : MonoBehaviour
                 {
                     if (curClickedUnit == curActiveUnit)
                     {
-                        SelectUnit(null);
+                        DisplayUnitOperations(null);
                         curOperatingState = OperatingState.NoSelect;
                     }
                     else
                     {
-                        SelectUnit(curClickedUnit);
+                        DisplayUnitOperations(curClickedUnit);
                         if (curClickedUnit != null && curClickedUnit.CurrentProperty.team != CurTeam)
                         {
                             curOperatingState = OperatingState.NoSelect;
@@ -527,9 +536,9 @@ public class BattleManager : MonoBehaviour
 
 
     /// <summary>
-    /// 设置当前选中的单位（若为null则为取消选择）
+    /// 显示当前选中的单位可执行的行动（若为null则为取消选择）
     /// </summary>
-    private void SelectUnit(UnitTile unitTile)
+    private void DisplayUnitOperations(UnitTile unitTile)
     {
         curActiveUnit = null;
         ClearOpeartionsDisplay();
@@ -545,6 +554,7 @@ public class BattleManager : MonoBehaviour
             curActiveUnit = unitTile;
             if (curActiveUnit.CanMove)
             {
+                Debug.Log($"cur unit can move.");
                 curUnitMovableNodes = PathFinder.Find(unitTile.PosX, unitTile.PosY,
                     // 单位可以通过地形且该格子无其他单位
                     unitTile.CurrentProperty.mp, (x, y) =>
@@ -561,10 +571,13 @@ public class BattleManager : MonoBehaviour
                     curActiveOperations.Add(new(node.x, node.y), OperationType.Move);
                 }
             }
-
+            else
+            {
+                Debug.Log("cur unit can not move.");
+            }
             if (curActiveUnit.CanAttack)
             {
-                
+
             }
             //TODO：加入其他动作
         }
@@ -606,11 +619,11 @@ public class BattleManager : MonoBehaviour
 
         if (curActiveUnit == unitTile)
         {
-            SelectUnit(null);
+            DisplayUnitOperations(null);
         }
         else
         {
-            SelectUnit(unitTile);
+            DisplayUnitOperations(unitTile);
         }
     }
 

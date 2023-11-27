@@ -139,15 +139,38 @@ public class UnitTile : GameTile
     /// <param name="team">下一回合行动队伍</param>
     protected virtual void NextTurn(int team)
     {
-        if (team == CurrentProperty.team)
+        CanMove = true;
+        CanAttack = true;
+    }
+    
+
+    /// <summary>
+    /// 刷新当前状态显示
+    /// </summary>
+    protected virtual void RefreshAvailableStatus()
+    {
+        if (CanMove)
         {
-            CanMove = true;
-            CanAttack = true;
-        }
+            GetComponent<SpriteRenderer>().color = Color.white;
+        } 
         else
         {
-            CanMove = false;
-            CanAttack = false;
+            // 如果没有可攻击的单位，那么显示为灰色
+            Scanner scanner = new Scanner(LogicPosition,
+                    BattleManager.Instance.BattleFieldSize,
+                    CurrentProperty.atkRange,
+                    (Vector2Int pos) =>
+                    {
+                        return BattleManager.Instance.Units[pos.x, pos.y] != null &&
+                         BattleManager.Instance.Units[pos.x, pos.y].CurrentProperty.team !=
+                            CurrentProperty.team;
+                    });
+            var res = scanner.Scan();
+            if (res.Count() == 0)
+            {
+                //Debug.Log($"unit at {LogicPosition} has no attackble.");
+                GetComponent<SpriteRenderer>().color = Color.gray;
+            }
         }
     }
 
@@ -156,16 +179,17 @@ public class UnitTile : GameTile
         switch (battleEvent.Type)
         {
             case BattleEventType.Attack:
-                
+
                 break;
             case BattleEventType.Move:
                 Vector2Int startPos = (Vector2Int)battleEvent.Params[0];
-                if (startPos != LogicPosition) break;
+                if (startPos != LogicPosition) return;
                 Vector2Int endPos = ((Vector2Int)battleEvent.Params[1]);
                 List<Vector2Int> path = ((List<Vector2Int>)battleEvent.Params[2]);
                 MoveByPath(path);
                 LogicPosition = endPos;
                 CanMove = false;
+                RefreshAvailableStatus();
                 Debug.Log($"{name} move to {endPos}");
                 break;
             case BattleEventType.NextTurn:
