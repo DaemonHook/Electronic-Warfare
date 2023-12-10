@@ -124,6 +124,18 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -284,7 +296,14 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      explosion-f6_0: 1604230735445845599
+      explosion-f6_1: 1436094699762286863
+      explosion-f6_2: -2533514917743040220
+      explosion-f6_3: 2969934092033530051
+      explosion-f6_4: -6699273572200624003
+      explosion-f6_5: 3447910978252820545
+      explosion-f6_6: 6085100033737503886
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

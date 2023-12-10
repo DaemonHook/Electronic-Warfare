@@ -4,16 +4,19 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class BattleUI : MonoBehaviour
 {
     public static BattleUI Instance;
 
-    public Transform LTPanelTr;
+    public Transform LeftTopTr;
     public GameObject LTPanel;
 
-    public Transform RTPanelTr;
+    public Transform RightTopTr;
+    
+    public Transform RightBottomTr;
     
     private ArmyView armyView;
     private TerrainView terrainView;
@@ -25,9 +28,10 @@ public class BattleUI : MonoBehaviour
         Instance = this;
         transform.Find("LeftTop").position = new Vector3(Screen.safeArea.xMin, Screen.safeArea.yMax);
         transform.Find("RightTop").position = new Vector3(Screen.safeArea.xMax, Screen.safeArea.yMax);
-        armyView = LTPanelTr.Find("ArmyView").GetComponent<ArmyView>();
-        terrainView = LTPanelTr.Find("TerrainView").GetComponent<TerrainView>();
-        teamText = RTPanelTr.Find("CurrentTeam").GetComponent<Text>();
+        transform.Find("RightBottom").position = new Vector3(Screen.safeArea.xMax, Screen.safeArea.yMin);
+        armyView = LTPanel.transform.Find("ArmyView").GetComponent<ArmyView>();
+        terrainView = LeftTopTr.Find("TerrainView").GetComponent<TerrainView>();
+        teamText = RightTopTr.Find("CurrentTeam").GetComponent<Text>();
     }
 
     private void Start()
@@ -43,6 +47,24 @@ public class BattleUI : MonoBehaviour
 
     private ValueTuple<int, int> lastClick = (-666, -100866);
 
+    private void OnBattleEvent(BattleEvent battleEvent)
+    {
+        switch (battleEvent.Type)
+        {
+            case BattleEventType.Move:
+                break;
+            case BattleEventType.Attack:
+                break;
+            case BattleEventType.NextTurn:
+                int nextTeam = (int)battleEvent.Params[0];
+                teamText.text = $"當前隊伍：{nextTeam}（{BattleManager.TeamColorStrings[nextTeam]}）";
+                //TODO: 添加下一回合提示效果
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+    
     private void OnUIEvent(UIEvent uiEvent)
     {
         switch (uiEvent.Type)

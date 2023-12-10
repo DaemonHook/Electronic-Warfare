@@ -29,12 +29,10 @@ public class BattleManager : MonoBehaviour
     public TiledMap Map { get; set; }
     public int Height; //战场大小
     public int Width; //战场大小
+
     public Vector2Int BattleFieldSize
     {
-        get
-        {
-            return new Vector2Int(Width, Height);
-        }
+        get { return new Vector2Int(Width, Height); }
     }
 
 
@@ -54,7 +52,7 @@ public class BattleManager : MonoBehaviour
     public TerrainTile[,] Terrains;
     public ObjectTile[,] Objects;
     public UnitTile[,] Units;
-    
+
     public TouchPad[,] TouchPads;
 
     private void CreateTouchPads()
@@ -199,10 +197,35 @@ public class BattleManager : MonoBehaviour
         }
     }
 
+    #region 队伍系统
+
+    // TODO: 支持多玩家
+    public int PlayerTeam = 0;
+    public int CurrentTeam { get; set; } = 1; //当前行动的队伍
     public int TeamCount;
 
     public Dictionary<int, List<UnitTile>> TeamUnits;
 
+    public static string[] TeamColorStrings =
+    {
+        "白色",
+        "藍色",
+        "黃色",
+    };
+
+    /// <summary>
+    /// 玩家点击下一回合按键
+    /// </summary>
+    public void OnNextTurnButton()
+    {
+        Debug.Log($"OnNextTurnButton");
+        if (CurrentTeam == PlayerTeam)
+        {
+            AddBattleEvent(new BattleEvent(BattleEventType.NextTurn, (CurrentTeam + 1) % TeamCount));
+        }
+    }
+
+    #endregion
 
     #region 事件处理
 
@@ -339,6 +362,7 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     public void ReceiveBattleEvent(BattleEvent battleEvent)
     {
+        Debug.Log($"Received Battle Event: {{type: {battleEvent.Type}, params: {battleEvent.Params}}}");
         switch (battleEvent.Type)
         {
             case BattleEventType.Move:
@@ -376,9 +400,6 @@ public class BattleManager : MonoBehaviour
 
     #endregion
 
-    public int CurTeam { get; set; } = 1; //当前行动的队伍
-
-
 
     #region 玩家操作处理
 
@@ -409,7 +430,12 @@ public class BattleManager : MonoBehaviour
         curOperationPos = new Vector2Int(row, col);
 
         UnitTile curClickedUnit = Units[row, col];
-        Debug.Log($"curClickedUnit: {curClickedUnit}");
+        if (curClickedUnit != null)
+        {
+            Debug.Log($"curClickedUnit: {curClickedUnit}");
+        }
+
+        Debug.Log($"curOperatingState: {curOperatingState}");
         switch (curOperatingState)
         {
             case OperatingState.NoSelect:
@@ -417,7 +443,7 @@ public class BattleManager : MonoBehaviour
                 {
                     //显示单位状态和行动范围
                     DisplayUnitOperations(curClickedUnit);
-                    if (curClickedUnit.CurrentProperty.team == CurTeam)
+                    if (curClickedUnit.CurrentProperty.team == CurrentTeam)
                     {
                         Debug.Log($"entered Select Mode");
                         //如果点击的是自己的单位，那么就进入Selected状态
@@ -443,7 +469,7 @@ public class BattleManager : MonoBehaviour
                     else
                     {
                         DisplayUnitOperations(curClickedUnit);
-                        if (curClickedUnit != null && curClickedUnit.CurrentProperty.team != CurTeam)
+                        if (curClickedUnit != null && curClickedUnit.CurrentProperty.team != CurrentTeam)
                         {
                             curOperatingState = OperatingState.NoSelect;
                         }
@@ -452,14 +478,30 @@ public class BattleManager : MonoBehaviour
 
                 break;
             case OperatingState.Confirming:
-                Destroy(confirmPad);
-                confirmPad = null;
-                curOperatingState = OperatingState.Selected;
-                if (curActiveOperations.ContainsKey(new(row, col)))
+                // TODO: 这里逻辑不好，要重写
+                if (curClickedUnit != null && curClickedUnit != curActiveUnit)
                 {
-                    confirmPad = Instantiate(confirmPadPrefab,
-                        new Vector3(row, col + 1), Quaternion.identity);
-                    curOperatingState = OperatingState.Confirming;
+                    curOperatingState = OperatingState.NoSelect;
+                    //显示单位状态和行动范围
+                    DisplayUnitOperations(curClickedUnit);
+                    if (curClickedUnit.CurrentProperty.team == CurrentTeam)
+                    {
+                        Debug.Log($"entered Select Mode");
+                        //如果点击的是自己的单位，那么就进入Selected状态
+                        curOperatingState = OperatingState.Selected;
+                    }
+                }
+                else
+                {
+                    Destroy(confirmPad);
+                    confirmPad = null;
+                    curOperatingState = OperatingState.Selected;
+                    if (curActiveOperations.ContainsKey(new(row, col)))
+                    {
+                        confirmPad = Instantiate(confirmPadPrefab,
+                            new Vector3(row, col + 1), Quaternion.identity);
+                        curOperatingState = OperatingState.Confirming;
+                    }
                 }
 
                 break;
@@ -575,9 +617,9 @@ public class BattleManager : MonoBehaviour
             {
                 Debug.Log("cur unit can not move.");
             }
+
             if (curActiveUnit.CanAttack)
             {
-
             }
             //TODO：加入其他动作
         }

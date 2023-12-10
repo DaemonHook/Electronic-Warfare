@@ -184,6 +184,18 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -764,7 +776,34 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      explosion-6_0: -1316846537126965687
+      explosion-6_1: 6094558206232785351
+      explosion-6_10: -6344450153812775810
+      explosion-6_11: -9022343634728691440
+      explosion-6_12: -2852833003675341560
+      explosion-6_13: 1040074963745936861
+      explosion-6_14: 9021269278582612113
+      explosion-6_15: 3761170865011647805
+      explosion-6_16: -784442577474311934
+      explosion-6_17: 139262099432843681
+      explosion-6_18: -5701987477769472442
+      explosion-6_19: -5673801458807724438
+      explosion-6_2: -2164684230196144612
+      explosion-6_20: 2866115771613692424
+      explosion-6_21: 8640076700223305920
+      explosion-6_22: -5810431855707149686
+      explosion-6_23: 8472326935639727705
+      explosion-6_24: -7063293964985083367
+      explosion-6_25: -343526597465829152
+      explosion-6_26: -3443098030262898823
+      explosion-6_3: -4466388655673148299
+      explosion-6_4: -7809058056965624141
+      explosion-6_5: 5149571842999456665
+      explosion-6_6: -3099036081618527749
+      explosion-6_7: 9203834906448695745
+      explosion-6_8: -2103065242360266121
+      explosion-6_9: 4735546296248951978
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
