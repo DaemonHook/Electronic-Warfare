@@ -8,7 +8,9 @@ using UnityEngine.SubsystemsImplementation;
 public enum UIEventType
 {
     Click,
-    Select,
+    // Select,
+    Confirm,
+    Refresh,
 }
 
 /// <summary>

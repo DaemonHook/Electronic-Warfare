@@ -35,6 +35,7 @@ public class TouchPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     {
         SelectGO = transform.Find("Select").gameObject;
         ControlGO = transform.Find("Control").gameObject;
+        controlSp = GetComponent<SpriteRenderer>();
         BattleManager.Instance.RegisterUIEventHandler(ReceiveUIEvent);
     }
 
@@ -74,9 +75,10 @@ public class TouchPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 
     #region 控制显示样式
 
+    private SpriteRenderer controlSp;
+    
     public void SetControlState(ControlState state)
     {
-        var controlSp = ControlGO.GetComponent<SpriteRenderer>();
         switch (state)
         {
             case ControlState.None:
