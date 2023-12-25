@@ -7,10 +7,11 @@ using UnityEngine.SubsystemsImplementation;
 [Serializable]
 public enum UIEventType
 {
-    Click,
+    Click,      // 点击地图上的格子
     // Select,
-    Confirm,
-    Refresh,
+    Confirm,    // 点击确认按钮
+    NextTurn,   // 点击下一回合
+    ThisTurn,   // 轮到当前玩家行动
 }
 
 /// <summary>

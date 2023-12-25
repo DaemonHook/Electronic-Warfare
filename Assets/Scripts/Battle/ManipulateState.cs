@@ -10,7 +10,7 @@ public class ManipulateState
     public static Dictionary<string, ManipulateState> StateDic = new Dictionary<string, ManipulateState>();
     public Action OnEnter { get; set; }
     public Action OnExit { get; set; }
-    public Action<object> OnEvent { get; set; }
+    public Action<UIEvent> OnEvent { get; set; }
     public string Name { get; private set; }
 
     public ManipulateState(string name)
@@ -28,9 +28,9 @@ public class ManipulateState
         OnEvent = onEvent;
     }
 
-    public void Event(object param)
+    public void Event(UIEvent @event)
     {
-        OnEvent.Invoke(param);
+        OnEvent.Invoke(@event);
     }
 
     public ManipulateState SwitchTo(string nextStateName)
