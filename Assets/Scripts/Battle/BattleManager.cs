@@ -499,10 +499,18 @@ public class BattleManager : MonoBehaviour
     private Vector2Int curOperationPos;
     
     // 未选中状态
+    // 此状态中，可以选中单位，若为可操控单位，则进入Active状态
     private ManipulateState Idle = new("Idle");
 
+    // 活跃状态（选中了自己的单位）
+    // 此状态中可以对单位发出指令
     private ManipulateState Active = new("Active");
+
+    // 
+    private ManipulateState Confirming = new("Confirming");
     
+    private ManipulateState Blocked = new("Blocked");
+
     private ManipulateState curState;
 
     private void InitStateMachine()

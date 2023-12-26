@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 
 /// <summary>
-/// 状态机
+/// 状态机中的状态
 /// </summary>
 public class ManipulateState
 {
@@ -48,3 +48,4 @@ public class ManipulateState
         return newState;
     }
 }
+
