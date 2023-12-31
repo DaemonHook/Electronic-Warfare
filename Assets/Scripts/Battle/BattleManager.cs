@@ -28,8 +28,11 @@ public class BattleManager : MonoBehaviour
     public string MapName;
 
     public TiledMap Map { get; set; }
-    public int Height; //战场大小
-    public int Width; //战场大小
+    public int Height;  //战场大小
+    public int Width;   //战场大小
+
+    public int PlayerNum = 2;   // 玩家数量
+    public int CurPlayer { get; set; } = 0;   // 当前的玩家
 
     public Vector2Int BattleFieldSize
     {

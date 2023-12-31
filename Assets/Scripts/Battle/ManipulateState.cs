@@ -13,19 +13,23 @@ public class ManipulateState
     public Action<UIEvent> OnEvent { get; set; }
     public string Name { get; private set; }
 
+    public StateMachine Machine { get; private set; } 
+
     public ManipulateState(string name)
     {
         Name = name;
         StateDic.Add(name, this);
     }
     
-    public ManipulateState(string name, Action onEnter, Action onExit, Action<object> onEvent)
+    public ManipulateState(string name, Action onEnter, Action onExit, Action<object> onEvent, 
+        StateMachine machine)
     {
         Name = name;
         StateDic.Add(name, this);
         OnEnter = onEnter;
         OnExit = onExit;
         OnEvent = onEvent;
+        Machine = machine;
     }
 
     public void Event(UIEvent @event)
@@ -33,19 +37,32 @@ public class ManipulateState
         OnEvent.Invoke(@event);
     }
 
-    public ManipulateState SwitchTo(string nextStateName)
+    public void Switch(string newState)
     {
+        Machine.Switch(newState);
         OnExit?.Invoke();
-        ManipulateState nextState = StateDic[nextStateName];
-        nextState.OnEnter?.Invoke();
-        return nextState;
-    }
-
-    public ManipulateState SwitchTo(ManipulateState newState)
-    {
-        OnExit?.Invoke();
-        newState.OnEnter?.Invoke();
-        return newState;
     }
 }
 
+public class StateMachine
+{
+    public Dictionary<string, ManipulateState> StateDic = new();
+    public ManipulateState CurState = null;
+
+    public void AddNewState(ManipulateState state)
+    {
+
+    }
+
+    public void Init(string firstStateName)
+    {
+        
+    }
+
+    public void Switch(string newStateName)
+    {
+        CurState.OnExit?.Invoke();
+        CurState = StateDic(newStateName);
+
+    }
+}
