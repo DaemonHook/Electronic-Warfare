@@ -3,8 +3,11 @@
  * feature: 战斗管理器
  */
 
+using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Design;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -31,6 +34,7 @@ public class BattleManager : MonoBehaviour
     public int Height;  //战场大小
     public int Width;   //战场大小
 
+    //TODO: 增加玩家数量
     public int PlayerNum = 2;   // 玩家数量
     public int CurPlayer { get; set; } = 0;   // 当前的玩家
 
@@ -103,17 +107,17 @@ public class BattleManager : MonoBehaviour
             MapName = GameApp.MapName;
         }
     }
-    
+
     private void Init()
     {
-        GetMapName();
         LoadPackage();
+        GetMapName();
         LoadMap();
         ApplySettings();
         CreateTouchPads();
         CreateBattleField();
-        
-        InitStateMachine();
+
+        InitManipulateStateMachine();
     }
 
     private void LoadMap()
@@ -145,8 +149,12 @@ public class BattleManager : MonoBehaviour
     {
         Units = new UnitTile[Width, Height];
         var unitIds = Map.Unit;
-        TeamCount = 0;
         TeamUnits = new Dictionary<int, List<UnitTile>>();
+        for (int i = 0; i < TeamCount; i++)
+        {
+            TeamUnits.Add(i, new List<UnitTile>());
+        }
+
         for (int i = 0; i < Width; i++)
         {
             for (int j = 0; j < Height; j++)
@@ -155,12 +163,18 @@ public class BattleManager : MonoBehaviour
                 var prefab = Package.Prefabs[unitIds[i, j].tileId];
                 var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
                 Units[i, j] = go.GetComponent<UnitTile>();
-                if ((Units[i, j].CurrentProperty.team) != -1)
+                // -1表示中立单位
+                if (Units[i, j].CurrentProperty.team != -1)
                 {
                     if (TeamUnits.ContainsKey(Units[i, j].CurrentProperty.team))
                     {
-                        TeamUnits[i].Add(Units[i, j]);
+                        TeamUnits[Units[i, j].CurrentProperty.team].Add(Units[i, j]);
                     }
+                }
+                else
+                {
+                    // TODO: 添加灵活的队伍处理
+                    throw new Exception();
                 }
             }
         }
@@ -205,10 +219,9 @@ public class BattleManager : MonoBehaviour
 
     #region 队伍系统
 
-    // TODO: 支持多玩家
     public int PlayerTeam = 0;
     public int CurrentTeam { get; set; } = 1; //当前行动的队伍
-    public int TeamCount;
+    public int TeamCount { get { return PlayerNum; } }
 
     public Dictionary<int, List<UnitTile>> TeamUnits;
 
@@ -227,7 +240,9 @@ public class BattleManager : MonoBehaviour
         Debug.Log($"OnNextTurnButton");
         if (CurrentTeam == PlayerTeam)
         {
-            AddBattleEvent(new BattleEvent(BattleEventType.NextTurn, (CurrentTeam + 1) % TeamCount));
+            int nextTeam = (CurrentTeam + 1) % TeamCount;
+            AddBattleEvent(new BattleEvent(BattleEventType.NextTurn, nextTeam));
+            AddUIEvent(new UIEvent(UIEventType.NextTurn, nextTeam));
         }
     }
 
@@ -336,12 +351,12 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 添加单位行动事件
+    /// 触发单位行动事件
     /// </summary>
     /// <param name="unit">行动的单位</param>
     /// <param name="type">行动类型</param>
     /// <param name="param">行动参数</param>
-    public void AddUnitOperation(UnitTile unit, OperationType type, params object[] param)
+    public void TriggerUnitOperationEvent(UnitTile unit, OperationType type, params object[] param)
     {
         print($"DoOperation: operation type {type} to {param[0]}");
         switch (type)
@@ -391,7 +406,12 @@ public class BattleManager : MonoBehaviour
 
     public void ReceiveUIEvent(UIEvent uiEvent)
     {
-        curState.OnUIEvent(uiEvent);
+        Debug.Log($"uievent type:{uiEvent.Type}");
+
+        foreach(var sm in playerSMs)
+        {
+            sm.OnEvent(uiEvent);
+        }
     }
 
     #endregion
@@ -399,35 +419,35 @@ public class BattleManager : MonoBehaviour
 
     #region 玩家操作处理
 
-    
+
 
     private bool UnitCanPass(int posX, int posY)
     {
         if (posX < 0 || posX >= Width || posY < 0 || posY >= Height) return false;
         ObjectTile objectTile = Objects[posX, posY];
         TerrainTile terrainTile = Terrains[posX, posY];
-        return curActiveUnit.CanPass(objectTile, terrainTile);
+        return activeUnit.CanPass(objectTile, terrainTile);
     }
 
-
     /// <summary>
-    /// 显示当前选中的单位可执行的行动（若为null则为取消选择）
+    /// 显示单位可执行的行动（若为null则为清空显示）
     /// </summary>
     private void DisplayUnitOperations(UnitTile unitTile)
     {
-        curActiveUnit = null;
-        ClearOpeartionsDisplay();
+        // 清除之前的显示
+        foreach (var p in curActiveOperations.Keys)
+        {
+            TouchPads[p.x, p.y].SetControlState(ControlState.None);
+        }
         curActiveOperations.Clear();
 
+        // 获取可行动作
         if (unitTile != null)
         {
-            // string tmp = "";
-
             // 刷新可行动作
 
             // 添加移动动作
-            curActiveUnit = unitTile;
-            if (curActiveUnit.CanMove)
+            if (unitTile.CanMove)
             {
                 Debug.Log($"cur unit can move.");
                 curUnitMovableNodes = PathFinder.Find(unitTile.PosX, unitTile.PosY,
@@ -451,25 +471,14 @@ public class BattleManager : MonoBehaviour
                 Debug.Log("cur unit can not move.");
             }
 
-            if (curActiveUnit.CanAttack)
+            if (unitTile.CanAttack)
             {
+                //TODO
             }
             //TODO：加入其他动作
         }
 
-        DisplayActiveOperations();
-    }
-
-    private void ClearOpeartionsDisplay()
-    {
-        foreach (var p in curActiveOperations.Keys)
-        {
-            TouchPads[p.x, p.y].SetControlState(ControlState.None);
-        }
-    }
-
-    private void DisplayActiveOperations()
-    {
+        // 显示可行动作
         foreach (var (pos, type) in curActiveOperations)
         {
             //TODO 添加其他动作显示
@@ -485,12 +494,13 @@ public class BattleManager : MonoBehaviour
         }
     }
 
+
     #region 状态机实现
 
     /// <summary>
     /// 当前活跃的（选中的）单位
     /// </summary>
-    private UnitTile curActiveUnit;
+    private UnitTile activeUnit;
 
     /// <summary>
     /// 当前活跃的单位可以移动的节点
@@ -498,36 +508,143 @@ public class BattleManager : MonoBehaviour
     private List<PathFinder.PathNode> curUnitMovableNodes;
 
     private Dictionary<Vector2Int, OperationType> curActiveOperations = new();
-    
+
     private Vector2Int curOperationPos;
-    
-    
+
+    /// <summary>
+    /// 选择一个单位
+    /// </summary>
+    /// <param name="unitTile"></param>
+    private void SelectUnit(UnitTile unitTile)
+    {
+        DisplayUnitOperations(null);
+        activeUnit = unitTile;
+        DisplayUnitOperations(activeUnit);
+    }
+
     /*
      * 操作状态
      */
     // 未选中状态
     // 此状态中，可以选中单位，若为可操控单位，则进入Active状态
-    private ManipulateState Idle = new("Idle");
+    private static ManipulateState Idle = new("Idle");
 
     // 活跃状态（选中了自己的单位）
     // 此状态中可以对单位发出指令
-    private ManipulateState Active = new("Active");
-    
-    // 
-    private ManipulateState Confirming = new("Confirming");
-    
-    private ManipulateState Blocked = new("Blocked");
+    private static ManipulateState Active = new("Active");
 
-    private ManipulateState curState;
-    
-    /// <summary>
-    /// 全局初始化
-    /// </summary>
-    private void InitStateMachine()
+    // 确认操作状态
+    // 此状态中确认当前行动
+    private static ManipulateState Confirming = new("Confirming");
+
+    // 其他玩家在行动状态
+    private static ManipulateState Waiting = new("Waiting");
+
+    // 所有状态的数组
+    private static ManipulateState[] AllStates =
     {
-        
+        Idle, Active, Confirming, Waiting
+    };
+
+    private List<StateMachine> playerSMs;
+
+    private UnitTile GetClickedUnit(UIEvent uievent)
+    {
+        Vector2Int clickCord = (Vector2Int)uievent.Params[0];
+        return Units[clickCord.x, clickCord.y];
     }
-    
+
+    /// <summary>
+    /// 状态机的初始化
+    /// </summary>
+    private void InitManipulateStateMachine()
+    {
+        /*
+         * Idle状态，进入时清空行动显示
+         */
+        Idle.OnEnter = (StateMachine sm) =>
+        {
+            Debug.Log($"sm of {sm.Team} entered Idle");
+            DisplayUnitOperations(null);
+        };
+
+        Idle.OnEvent = (UIEvent uievent, StateMachine sm) =>
+        {
+            switch (uievent.Type)
+            {
+                case UIEventType.Click:
+                    /*
+                     * Idle状态，若点击了单位则刷新活跃单位，若活跃单位属于本队伍
+                     * 则进入Active模式
+                     */
+                    SelectUnit(GetClickedUnit(uievent));
+                    if (activeUnit != null)
+                    {
+                        if (activeUnit.CurrentProperty.team == 
+                            sm.Team)
+                        {
+                            sm.Switch("Active");
+                        }
+                    }
+                    break;
+                case UIEventType.Confirm:
+                    throw new ArgumentOutOfRangeException();
+                case UIEventType.NextTurn:
+                    int nextTeam = (int)uievent.Params[0];
+                    if (nextTeam != CurrentTeam)
+                    {
+                        sm.Switch("Waiting");
+                    }
+                    break;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        };
+
+        /*
+         * Active状态进入，显示活跃单位可行行动
+         */
+        Active.OnEnter = (StateMachine sm) =>
+        {
+            Debug.Log($"sm of {sm.Team} entered Active");
+            DisplayUnitOperations(activeUnit);
+        };
+
+        Active.OnEvent = (UIEvent uievent, StateMachine sm) =>
+        {
+            switch (uievent.Type)
+            {
+                case UIEventType.Click:
+                    Vector2Int clickCord = (Vector2Int)uievent.Params[0];
+                    
+                    break;
+                case UIEventType.Confirm:
+                    throw new ArgumentOutOfRangeException();
+                case UIEventType.NextTurn:
+                    int nextTeam = (int)uievent.Params[0];
+                    if (nextTeam != CurrentTeam)
+                    {
+                        sm.Switch("Waiting");
+                    }
+                    break;
+            }
+        };
+
+
+
+
+        playerSMs = new();
+        for (int i = 0; i < PlayerNum; i++)
+        {
+            playerSMs.Add(new StateMachine(i));
+            foreach (var state in AllStates)
+            {
+                playerSMs[i].AddNewState(state);
+            }
+        }
+
+
+    }
+
     #endregion
 
     public void OnTouchpadClicked(int row, int col)
@@ -536,7 +653,7 @@ public class BattleManager : MonoBehaviour
         // curState.Event(new Vector2Int(row, col));
         AddUIEvent(new UIEvent(UIEventType.Click, new Vector2Int(row, col)));
     }
-    
+
     public GameObject confirmPadPrefab;
     private GameObject confirmPad; //行动确认按钮
 
@@ -578,10 +695,10 @@ public class BattleManager : MonoBehaviour
 
                 Debug.Log("path: " + s);
 
-                AddUnitOperation(curActiveUnit, OperationType.Move, curOperationPos, path);
+                TriggerUnitOperationEvent(activeUnit, OperationType.Move, curOperationPos, path);
                 break;
         }
-        AddUIEvent(new UIEvent(UIEventType.Confirm, null));        
+        AddUIEvent(new UIEvent(UIEventType.Confirm, null));
     }
 
     #endregion

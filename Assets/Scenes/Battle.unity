@@ -1321,9 +1321,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1409099105}
+      - m_Target: {fileID: 11500000, guid: 6c8c8da97bfb3e046996373e82eea191, type: 3}
         m_TargetAssemblyTypeName: BattleManager, Assembly-CSharp
-        m_MethodName: OnNextTurnButton
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1964,9 +1964,9 @@ MonoBehaviour:
   MapName: sampleMap
   Height: 10
   Width: 10
+  PlayerNum: 2
   TouchPad: {fileID: 3628635761543859104, guid: e86aaddff92494f26b98c9e32536fa45, type: 3}
   PlayerTeam: 0
-  TeamCount: 0
   confirmPadPrefab: {fileID: 9077498721083314774, guid: b38ebbdfb55be4f67b1eeb1f06cd6f8f, type: 3}
 --- !u!114 &1409099106
 MonoBehaviour:
