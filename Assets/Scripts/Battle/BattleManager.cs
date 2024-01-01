@@ -391,7 +391,7 @@ public class BattleManager : MonoBehaviour
 
     public void ReceiveUIEvent(UIEvent uiEvent)
     {
-        curState.Event(uiEvent);
+        curState.OnUIEvent(uiEvent);
     }
 
     #endregion
@@ -501,6 +501,10 @@ public class BattleManager : MonoBehaviour
     
     private Vector2Int curOperationPos;
     
+    
+    /*
+     * 操作状态
+     */
     // 未选中状态
     // 此状态中，可以选中单位，若为可操控单位，则进入Active状态
     private ManipulateState Idle = new("Idle");
@@ -508,62 +512,19 @@ public class BattleManager : MonoBehaviour
     // 活跃状态（选中了自己的单位）
     // 此状态中可以对单位发出指令
     private ManipulateState Active = new("Active");
-
+    
     // 
     private ManipulateState Confirming = new("Confirming");
     
     private ManipulateState Blocked = new("Blocked");
 
     private ManipulateState curState;
-
+    
+    /// <summary>
+    /// 全局初始化
+    /// </summary>
     private void InitStateMachine()
     {
-        Idle.OnEnter = () =>
-        {
-            // 进入未选中状态时，清除当前的行动显示
-            ClearOpeartionsDisplay();
-            Debug.Log("Enter NonSelect state");
-        };
-        
-        // 坐标被点击
-        Idle.OnEvent = (UIEvent uiEvent) =>
-        {
-            switch (uiEvent.Type)
-            {
-                case UIEventType.Click:
-                    break;
-                case UIEventType.Confirm:
-                    break;
-                case UIEventType.NextTurn:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        };
-        
-        // 进入选择状态
-        Active.OnEnter = () =>
-        {
-            Debug.Log("Enter Selected state");
-            DisplayActiveOperations();
-        };
-
-        Active.OnEvent = (UIEvent e) =>
-        {
-            switch (e.Type)
-            {
-                case UIEventType.Click:
-                    Vector2Int clickedPos = ((Vector2Int)e.Params[0]);
-                    break;
-                case UIEventType.Confirm:
-                    break;
-                case UIEventType.NextTurn:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        };
-        
         
     }
     
