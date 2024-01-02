@@ -24,7 +24,7 @@ public class GameTile : MonoBehaviour
     public Vector2Int LogicPosition
     {
         get => new(PosX, PosY);
-        set
+        protected set
         {
             PosX = value.x;
             PosY = value.y;

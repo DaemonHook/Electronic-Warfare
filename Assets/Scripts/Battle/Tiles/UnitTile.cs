@@ -29,24 +29,6 @@ public class UnitTile : GameTile
         RefreshDisplay();
     }
 
-    // protected override void ReceiveUIEvent(UIEvent uiEvent)
-    // {
-    //     base.ReceiveUIEvent(uiEvent);
-    //     switch (uiEvent.Type)
-    //     {
-    //         case UIEventType.Click:
-    //             var (x, y) = ((int, int))uiEvent.Param;
-    //             if ((x, y) == (PosX, PosY))
-    //             {
-    //                 BattleManager.Instance.OnUnitClick(this);
-    //             }
-    //
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    // }
-
     public bool Selected { get; set; }
 
     public void RefreshDisplay()
@@ -168,7 +150,6 @@ public class UnitTile : GameTile
             var res = scanner.Scan();
             if (res.Count() == 0)
             {
-                //Debug.Log($"unit at {LogicPosition} has no attackble.");
                 GetComponent<SpriteRenderer>().color = Color.gray;
             }
         }
@@ -184,13 +165,13 @@ public class UnitTile : GameTile
             case BattleEventType.Move:
                 Vector2Int startPos = (Vector2Int)battleEvent.Params[0];
                 if (startPos != LogicPosition) return;
-                Vector2Int endPos = ((Vector2Int)battleEvent.Params[1]);
-                List<Vector2Int> path = ((List<Vector2Int>)battleEvent.Params[2]);
+                Vector2Int endPos = (Vector2Int)battleEvent.Params[1];
+                List<Vector2Int> path = (List<Vector2Int>)battleEvent.Params[2];
                 MoveByPath(path);
                 LogicPosition = endPos;
                 CanMove = false;
                 RefreshAvailableStatus();
-                Debug.Log($"{name} move to {endPos}");
+                Debug.Log($"接受移动命令，移动至 {LogicPosition}");
                 break;
             case BattleEventType.NextTurn:
                 int team = ((int)battleEvent.Params[0]);

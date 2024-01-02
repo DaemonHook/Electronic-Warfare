@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 static class Util
 {
     /// <summary>
@@ -13,6 +14,7 @@ static class Util
     {
         for (int i = 0; i < frames; i++)
         {
+            // Debug.Log($"frame: {Time.frameCount}");
             yield return null;
         }
         action();

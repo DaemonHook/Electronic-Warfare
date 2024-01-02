@@ -232,7 +232,7 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     public void ToNextTeam()
     {
-       curTeamIndex = (curTeamIndex + 1) % TeamCount;
+        curTeamIndex = (curTeamIndex + 1) % TeamCount;
     }
 
     public int GetNextTeam()
@@ -251,8 +251,9 @@ public class BattleManager : MonoBehaviour
     public static string[] TeamColorStrings =
     {
         "白色",
-        "藍色",
-        "黃色",
+        "红色",
+        "蓝色",
+        "黄色",
     };
 
     /// <summary>
@@ -405,7 +406,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         HandleBattleEvent();
         HandleUIEvent();
@@ -416,7 +417,7 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     public void ReceiveBattleEvent(BattleEvent battleEvent)
     {
-        Debug.Log($"Received Battle Event: {{type: {battleEvent.Type}, params: {battleEvent.Params}}}");
+        // Debug.Log($"Received Battle Event: {{type: {battleEvent.Type}, params: {battleEvent.Params}}}");
         switch (battleEvent.Type)
         {
             case BattleEventType.Move:
@@ -426,7 +427,7 @@ public class BattleManager : MonoBehaviour
                     throw new Exception("duplicated unit position");
                 Units[endPos.x, endPos.y] = Units[startPos.x, startPos.y];
                 Units[startPos.x, startPos.y] = null;
-                Debug.Log($"unit at {startPos} move to {endPos}");
+                // Debug.Log($"unit at {startPos} move to {endPos}");
                 break;
             case BattleEventType.Attack:
                 break;
@@ -484,6 +485,8 @@ public class BattleManager : MonoBehaviour
         // 获取可行动作
         if (unitTile != null)
         {
+            Debug.Log($"刷新动作显示，当前单位 {unitTile}");
+
             // 刷新可行动作
 
             // 添加移动动作
@@ -515,23 +518,26 @@ public class BattleManager : MonoBehaviour
             {
                 //TODO
             }
+            // 显示可行动作
+            foreach (var (pos, type) in activeOperations)
+            {
+                Debug.Log($"{pos}, {type}");
+                //TODO 添加其他动作显示
+                switch (type)
+                {
+                    case OperationType.Move:
+                        TouchPads[pos.x, pos.y].SetControlState(ControlState.Moveable);
+                        break;
+                    case OperationType.Attack:
+                        TouchPads[pos.x, pos.y].SetControlState(ControlState.Attackable);
+                        break;
+                }
+            }
             //TODO：加入其他动作
         }
-
-        // 显示可行动作
-        foreach (var (pos, type) in activeOperations)
+        else
         {
-            Debug.Log($"{pos}, {type}");
-            //TODO 添加其他动作显示
-            switch (type)
-            {
-                case OperationType.Move:
-                    TouchPads[pos.x, pos.y].SetControlState(ControlState.Moveable);
-                    break;
-                case OperationType.Attack:
-                    TouchPads[pos.x, pos.y].SetControlState(ControlState.Attackable);
-                    break;
-            }
+            Debug.Log($"清除动作显示");
         }
     }
 
@@ -565,7 +571,6 @@ public class BattleManager : MonoBehaviour
     /// <param name="unitTile"></param>
     private void SelectUnit(UnitTile unitTile)
     {
-        RefreshAndDisplayUnitOperations(null);
         activeUnit = unitTile;
         RefreshAndDisplayUnitOperations(activeUnit);
     }
@@ -628,13 +633,12 @@ public class BattleManager : MonoBehaviour
                     SelectUnit(GetClickedUnit(uiEvent));
                     if (activeUnit != null)
                     {
-                        Debug.Log($"SM {sm.Team}: Clicked unit {activeUnit}");
+                        // Debug.Log($"SM {sm.Team}:  {activeUnit}");
                         if (activeUnit.CurrentProperty.team == sm.Team)
                         {
                             sm.Switch(Active.Name);
                         }
                     }
-
                     break;
                 case UIEventType.Confirm:
                     throw new ArgumentOutOfRangeException();
@@ -654,7 +658,7 @@ public class BattleManager : MonoBehaviour
          */
         Active.OnEnter = (StateMachine sm) =>
         {
-            Debug.Log($"active unit is {activeUnit.name}");
+            Debug.Log($"进入Active状态 {activeUnit}");
             RefreshAndDisplayUnitOperations(activeUnit);
         };
 
@@ -688,7 +692,6 @@ public class BattleManager : MonoBehaviour
                             sm.Switch(Idle.Name);
                         }
                     }
-
                     break;
                 case UIEventType.Confirm:
                     throw new ArgumentOutOfRangeException();
@@ -698,7 +701,6 @@ public class BattleManager : MonoBehaviour
                     {
                         sm.Switch(Waiting.Name);
                     }
-
                     break;
                 default: break;
             }
@@ -752,8 +754,9 @@ public class BattleManager : MonoBehaviour
                 case UIEventType.Confirm:
                     // 只有确认状态可以响应Confirm事件
                     EnqueueUnitOperationEvent(activeUnit, activeOperations[confirmingOperationPos], confirmingOperationPos);
-                    StartCoroutine(Util.DelayCorotine(1, () =>
+                    StartCoroutine(Util.DelayCorotine(2, () =>
                         {
+                            RefreshAndDisplayUnitOperations(null);
                             sm.Switch(Active.Name);
                         }
                     ));
@@ -800,7 +803,7 @@ public class BattleManager : MonoBehaviour
         };
 
         playerSMs = new();
-        foreach(var team in Teams)
+        foreach (var team in Teams)
         {
             playerSMs.Add(team, new StateMachine(team));
             foreach (var state in AllStates)
@@ -823,7 +826,7 @@ public class BattleManager : MonoBehaviour
             });
         }
 
-        foreach(var sm in playerSMs.Values)
+        foreach (var sm in playerSMs.Values)
         {
             Debug.Log($"SM {sm.Team} is at {sm.CurState.Name}");
         }

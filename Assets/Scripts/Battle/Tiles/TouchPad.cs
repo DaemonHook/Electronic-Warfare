@@ -70,16 +70,17 @@ public class TouchPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     #region 控制显示样式
 
     public SpriteRenderer ControlSpriteRenderer;
-    
+
     public void SetControlState(ControlState state)
     {
+        // Debug.Log($"Touchpad at {Row}, {Col} state set to {state}");
         switch (state)
         {
             case ControlState.None:
                 ControlSpriteRenderer.color = Color.clear;
                 break;
             case ControlState.Moveable:
-                Debug.Log($"TouchPad at {Row}, {Col} set control state: {state}");
+                // Debug.Log($"TouchPad at {Row}, {Col} set control state: {state}");
                 ControlSpriteRenderer.color = MovableColor;
                 break;
             case ControlState.Attackable:

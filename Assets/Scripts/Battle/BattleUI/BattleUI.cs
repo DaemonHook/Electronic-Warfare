@@ -109,13 +109,12 @@ public class BattleUI : MonoBehaviour
                 {
                     SetArmyViewActive(false);
                 }
-
                 break;
             case UIEventType.Confirm:
                 break;
             case UIEventType.NextTurn:
                 int nextTeam = (int)uiEvent.Params[0];
-                teamText.text = $"當前隊伍：{nextTeam}（{BattleManager.TeamColorStrings[nextTeam]}）";
+                teamText.text = $"当前队伍：{nextTeam}（{BattleManager.TeamColorStrings[nextTeam]}）";
                 break;
             default:
                 break;
