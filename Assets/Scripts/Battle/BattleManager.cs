@@ -614,8 +614,7 @@ public class BattleManager : MonoBehaviour
             switch (uievent.Type)
             {
                 case UIEventType.Click:
-                    Vector2Int clickCord = (Vector2Int)uievent.Params[0];
-                    
+                                        
                     break;
                 case UIEventType.Confirm:
                     throw new ArgumentOutOfRangeException();
