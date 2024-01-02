@@ -13,8 +13,7 @@ public class ConfirmPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
 {
     public void OnPointerUp(PointerEventData eventData)
     {
-        BattleManager.Instance.ConfirmOperation();
-        Destroy(gameObject);
+        BattleManager.Instance.OnConfirmButtonClicked();
     }
 
     public void OnPointerDown(PointerEventData eventData)

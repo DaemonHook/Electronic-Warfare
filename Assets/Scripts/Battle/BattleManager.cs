@@ -12,6 +12,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Serialization;
 
 public static class LayerOrders
@@ -25,6 +26,8 @@ public static class LayerOrders
 
 public class BattleManager : MonoBehaviour
 {
+
+    #region 基础字段和事件
     public static BattleManager Instance;
 
     [FormerlySerializedAs("PackageName")] public string ModuleName;
@@ -34,9 +37,7 @@ public class BattleManager : MonoBehaviour
     public int Height; //战场大小
     public int Width; //战场大小
 
-    //TODO: 增加玩家数量
     public int PlayerNum = 2; // 玩家数量
-    public int CurPlayer { get; set; } = 0; // 当前的玩家
 
     public Vector2Int BattleFieldSize
     {
@@ -73,7 +74,6 @@ public class BattleManager : MonoBehaviour
                 var go = GameObject.Instantiate(TouchPad, new Vector3(i, j, 0f), Quaternion.identity,
                     transform);
                 go.transform.SetParent(GameObject.Find("Manager/TouchPads").transform);
-                go.GetComponent<SpriteRenderer>().sortingOrder = LayerOrders.TouchPad;
                 TouchPads[i, j] = go.GetComponent<TouchPad>();
                 go.GetComponent<TouchPad>().Init(i, j);
             }
@@ -92,9 +92,23 @@ public class BattleManager : MonoBehaviour
         RegisterUIEventHandler(ReceiveUIEvent);
 
         // 第一个回合开始
-        AddBattleEvent(new BattleEvent(BattleEventType.NextTurn, 1));
+        TriggerBattleEvent(new BattleEvent(BattleEventType.NextTurn, 1));
+    }
+    private void Init()
+    {
+        LoadPackage();
+        GetMapName();
+        LoadMap();
+        ApplySettings();
+        CreateTouchPads();
+        CreateBattleField();
+
+        InitManipulateStateMachine();
     }
 
+    #endregion
+
+    #region 地图加载
     private void GetMapName()
     {
         if (GameApp.ModuleName != null)
@@ -106,18 +120,6 @@ public class BattleManager : MonoBehaviour
         {
             MapName = GameApp.MapName;
         }
-    }
-
-    private void Init()
-    {
-        LoadPackage();
-        GetMapName();
-        LoadMap();
-        ApplySettings();
-        CreateTouchPads();
-        CreateBattleField();
-
-        InitManipulateStateMachine();
     }
 
     private void LoadMap()
@@ -150,10 +152,6 @@ public class BattleManager : MonoBehaviour
         Units = new UnitTile[Width, Height];
         var unitIds = Map.Unit;
         TeamUnits = new Dictionary<int, List<UnitTile>>();
-        for (int i = 0; i < TeamCount; i++)
-        {
-            TeamUnits.Add(i, new List<UnitTile>());
-        }
 
         for (int i = 0; i < Width; i++)
         {
@@ -164,20 +162,20 @@ public class BattleManager : MonoBehaviour
                 var go = Factory.Instance.UnitFactory(prefab, i, j, Package.UnitProperties[unitIds[i, j].tileId]);
                 Units[i, j] = go.GetComponent<UnitTile>();
                 // -1表示中立单位
-                if (Units[i, j].CurrentProperty.team != -1)
+                if (Units[i, j].CurrentProperty.team >= 0)
                 {
-                    if (TeamUnits.ContainsKey(Units[i, j].CurrentProperty.team))
+                    if (!TeamUnits.ContainsKey(Units[i, j].CurrentProperty.team))
                     {
-                        TeamUnits[Units[i, j].CurrentProperty.team].Add(Units[i, j]);
+                        Teams.Add(Units[i, j].CurrentProperty.team);
+                        TeamUnits.Add(Units[i, j].CurrentProperty.team, new());
                     }
-                }
-                else
-                {
-                    // TODO: 添加灵活的队伍处理
-                    throw new Exception();
+                    TeamUnits[Units[i, j].CurrentProperty.team].Add(Units[i, j]);
                 }
             }
         }
+        Teams.Sort();
+        PlayerNum = Teams.Count;
+        Debug.Log($"共{PlayerNum}位玩家");
     }
 
     private void CreateObjects()
@@ -216,12 +214,33 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
+    #endregion
 
     #region 队伍系统
 
-    public int PlayerTeam = 0;
-    public int CurrentTeam { get; set; } = 1; //当前行动的队伍
+    private int curTeamIndex = 0;
+    public int CurTeam
+    {
+        get
+        {
+            return Teams[curTeamIndex];
+        }
+    }
 
+    /// <summary>
+    /// 轮到下一个玩家行动（不操作状态机）
+    /// </summary>
+    public void ToNextTeam()
+    {
+       curTeamIndex = (curTeamIndex + 1) % TeamCount;
+    }
+
+    public int GetNextTeam()
+    {
+        return Teams[(curTeamIndex + 1) % TeamCount];
+    }
+
+    public List<int> Teams = new();
     public int TeamCount
     {
         get { return PlayerNum; }
@@ -242,12 +261,9 @@ public class BattleManager : MonoBehaviour
     public void OnNextTurnButton()
     {
         Debug.Log($"OnNextTurnButton");
-        if (CurrentTeam == PlayerTeam)
-        {
-            int nextTeam = (CurrentTeam + 1) % TeamCount;
-            AddBattleEvent(new BattleEvent(BattleEventType.NextTurn, nextTeam));
-            AddUIEvent(new UIEvent(UIEventType.NextTurn, nextTeam));
-        }
+        int nextTeam = GetNextTeam();
+        TriggerBattleEvent(new BattleEvent(BattleEventType.NextTurn, nextTeam));
+        TriggerUIEvent(new UIEvent(UIEventType.NextTurn, nextTeam));
     }
 
     #endregion
@@ -311,19 +327,19 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 产生ui事件
+    /// 触发ui事件
     /// </summary>
     /// <param name="uiEvent"></param>
-    public void AddUIEvent(UIEvent uiEvent)
+    public void TriggerUIEvent(UIEvent uiEvent)
     {
         uiEventQueue.Enqueue(uiEvent);
     }
 
     /// <summary>
-    /// 产生战斗事件
+    /// 触发战斗事件
     /// </summary>
     /// <param name="battleEvent"></param>
-    public void AddBattleEvent(BattleEvent battleEvent)
+    public void TriggerBattleEvent(BattleEvent battleEvent)
     {
         battleEventQueue.Enqueue(battleEvent);
     }
@@ -355,23 +371,36 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 触发单位行动事件
+    /// 添加单位行动事件
     /// </summary>
-    /// <param name="unit">行动的单位</param>
-    /// <param name="type">行动类型</param>
-    /// <param name="param">行动参数</param>
-    public void TriggerUnitOperationEvent(UnitTile unit, OperationType type, params object[] param)
+    public void EnqueueUnitOperationEvent(UnitTile unit, OperationType type, Vector2Int target)
     {
-        print($"DoOperation: operation type {type} to {param[0]}");
+        Debug.Log($"unit {unit.name} do {type} to {target}");
         switch (type)
         {
             case OperationType.Attack:
-                //TODO add
-                break;
+                throw new Exception("尚未实现");
             case OperationType.Move:
-                Vector2Int target = (Vector2Int)param[0];
-                List<Vector2Int> path = (List<Vector2Int>)param[1];
-                AddBattleEvent(new BattleEvent(BattleEventType.Move, unit.LogicPosition, target, path));
+                // 获取移动路径
+                PathFinder.PathNode curNode = curUnitMovableNodes.Find(node => node.Equals(confirmingOperationPos))
+                    ?? throw new Exception("curNode not in curUnitMovableNodes");
+                List<Vector2Int> path = new List<Vector2Int>();
+                while (curNode != null)
+                {
+                    path.Add(new(curNode.x, curNode.y));
+                    curNode = curNode.preNode;
+                }
+                // 在路径中删除单位当前位置
+                path.RemoveAt(path.Count - 1);
+                // 节点为倒序排列，所以需要将其反向
+                path.Reverse();
+                string s = "";
+                foreach (var n in path)
+                {
+                    s += n.ToString() + ' ';
+                }
+                Debug.Log("path: " + s);
+                TriggerBattleEvent(new BattleEvent(BattleEventType.Move, unit.LogicPosition, target, path));
                 break;
         }
     }
@@ -410,11 +439,17 @@ public class BattleManager : MonoBehaviour
 
     public void ReceiveUIEvent(UIEvent uiEvent)
     {
-        Debug.Log($"uievent type:{uiEvent.Type}");
-
-        foreach (var sm in playerSMs)
+        Debug.Log($"Got uievent, type: {uiEvent.Type}");
+        switch (uiEvent.Type)
         {
-            sm.OnEvent(uiEvent);
+            case UIEventType.Click:
+                Debug.Log($"clicked pos: {uiEvent.Params[0]}");
+                break;
+            case UIEventType.Confirm:
+                break;
+            case UIEventType.NextTurn:
+                ToNextTeam();
+                break;
         }
     }
 
@@ -422,6 +457,8 @@ public class BattleManager : MonoBehaviour
 
 
     #region 玩家操作处理
+
+    #region 接口
 
     private bool UnitCanPass(int posX, int posY)
     {
@@ -437,12 +474,12 @@ public class BattleManager : MonoBehaviour
     private void RefreshAndDisplayUnitOperations(UnitTile unitTile)
     {
         // 清除之前的显示
-        foreach (var p in curActiveOperations.Keys)
+        foreach (var p in activeOperations.Keys)
         {
             TouchPads[p.x, p.y].SetControlState(ControlState.None);
         }
 
-        curActiveOperations.Clear();
+        activeOperations.Clear();
 
         // 获取可行动作
         if (unitTile != null)
@@ -466,7 +503,7 @@ public class BattleManager : MonoBehaviour
                     });
                 foreach (var node in curUnitMovableNodes)
                 {
-                    curActiveOperations.Add(new(node.x, node.y), OperationType.Move);
+                    activeOperations.Add(new(node.x, node.y), OperationType.Move);
                 }
             }
             else
@@ -482,8 +519,9 @@ public class BattleManager : MonoBehaviour
         }
 
         // 显示可行动作
-        foreach (var (pos, type) in curActiveOperations)
+        foreach (var (pos, type) in activeOperations)
         {
+            Debug.Log($"{pos}, {type}");
             //TODO 添加其他动作显示
             switch (type)
             {
@@ -497,6 +535,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
+    #endregion
 
     #region 状态机实现
 
@@ -513,7 +552,7 @@ public class BattleManager : MonoBehaviour
     /// <summary>
     /// 当前活跃单位可以执行的操作
     /// </summary>
-    private Dictionary<Vector2Int, OperationType> curActiveOperations = new();
+    private Dictionary<Vector2Int, OperationType> activeOperations = new();
 
     /// <summary>
     /// 待确认的操作位置
@@ -555,7 +594,7 @@ public class BattleManager : MonoBehaviour
         Idle, Active, Confirming, Waiting
     };
 
-    private List<StateMachine> playerSMs;
+    private Dictionary<int, StateMachine> playerSMs;
 
     private UnitTile GetClickedUnit(UIEvent uievent)
     {
@@ -573,6 +612,7 @@ public class BattleManager : MonoBehaviour
          */
         Idle.OnEnter = (StateMachine sm) =>
         {
+            activeUnit = null;
             RefreshAndDisplayUnitOperations(null);
         };
 
@@ -588,9 +628,10 @@ public class BattleManager : MonoBehaviour
                     SelectUnit(GetClickedUnit(uiEvent));
                     if (activeUnit != null)
                     {
+                        Debug.Log($"SM {sm.Team}: Clicked unit {activeUnit}");
                         if (activeUnit.CurrentProperty.team == sm.Team)
                         {
-                            sm.Switch("Active");
+                            sm.Switch(Active.Name);
                         }
                     }
 
@@ -599,12 +640,12 @@ public class BattleManager : MonoBehaviour
                     throw new ArgumentOutOfRangeException();
                 case UIEventType.NextTurn:
                     int nextTeam = (int)uiEvent.Params[0];
-                    if (nextTeam != CurrentTeam)
+                    if (nextTeam != CurTeam)
                     {
                         sm.Switch("Waiting");
                     }
                     break;
-                default: throw new ArgumentOutOfRangeException();
+                default: break;
             }
         };
 
@@ -626,11 +667,11 @@ public class BattleManager : MonoBehaviour
                      * 对于Active状态的点击事件
                      */
                     Vector2Int clickedCord = (Vector2Int)uiEvent.Params[0];
-                    if (curActiveOperations.ContainsKey(clickedCord))
+                    if (activeOperations.ContainsKey(clickedCord))
                     {
-                        // 若点击的是可行目标，进入确认状态
+                        // 若点击的是可行目标，再次进入确认状态
                         confirmingOperationPos = clickedCord;
-                        sm.Switch("Confirm");
+                        sm.Switch(Confirming.Name);
                     }
                     else
                     {
@@ -639,12 +680,12 @@ public class BattleManager : MonoBehaviour
                         if (clickedUnit != null && clickedUnit != activeUnit)
                         {
                             SelectUnit(clickedUnit);
-                            sm.Switch("Active");
+                            sm.Switch(Active.Name);
                         }
                         else
                         {
                             // 若没有点击到单位，取消选择，进入Idle状态
-                            sm.Switch("Idle");
+                            sm.Switch(Idle.Name);
                         }
                     }
 
@@ -653,97 +694,164 @@ public class BattleManager : MonoBehaviour
                     throw new ArgumentOutOfRangeException();
                 case UIEventType.NextTurn:
                     int nextTeam = (int)uiEvent.Params[0];
-                    if (nextTeam != CurrentTeam)
+                    if (nextTeam != CurTeam)
                     {
-                        sm.Switch("Waiting");
+                        sm.Switch(Waiting.Name);
                     }
 
                     break;
+                default: break;
             }
         };
 
-        Confirming.OnEnter = (StateMachine sm) => {
+        Confirming.OnEnter = (StateMachine sm) =>
+        {
+            Debug.Log($"confirming operation at {confirmingOperationPos}");
+            confirmPad = Instantiate(confirmPadPrefab.gameObject, transform);
+            confirmPad.transform.position = GetRealWorldPosition(confirmingOperationPos)
+                + new Vector3(0f, 1f);
         };
 
+        Confirming.OnEvent = (UIEvent uiEvent, StateMachine sm) =>
+        {
+            switch (uiEvent.Type)
+            {
+                case UIEventType.Click:
+                    // 对于确认状态，点击事件
+                    Vector2Int clickedCord = (Vector2Int)uiEvent.Params[0];
+                    if (activeOperations.ContainsKey(clickedCord))
+                    {
+                        // 若点击的是可行目标，重新进入确认状态
+                        confirmingOperationPos = clickedCord;
+                        sm.Switch(Confirming.Name);
+                    }
+                    else
+                    {
+                        // 若没有点击到单位，进入Idle
+                        UnitTile clickedUnit = GetClickedUnit(uiEvent);
+                        if (clickedUnit == null)
+                        {
+                            sm.Switch(Idle.Name);
+                        }
+                        // 否则，若点击的是本队伍单位，进入Active
+                        else
+                        {
+                            RefreshAndDisplayUnitOperations(clickedUnit);
+                            if (clickedUnit.CurrentProperty.team == CurTeam)
+                            {
+                                sm.Switch(Active.Name);
+                            }
+                            // 点击的是非本队伍单位，进入Idle
+                            else
+                            {
+                                sm.Switch(Idle.Name);
+                            }
+                        }
+                    }
+                    break;
+                case UIEventType.Confirm:
+                    // 只有确认状态可以响应Confirm事件
+                    EnqueueUnitOperationEvent(activeUnit, activeOperations[confirmingOperationPos], confirmingOperationPos);
+                    StartCoroutine(Util.DelayCorotine(1, () =>
+                        {
+                            sm.Switch(Active.Name);
+                        }
+                    ));
+                    break;
+                case UIEventType.NextTurn:
+                    int nextTeam = (int)uiEvent.Params[0];
+                    if (nextTeam != CurTeam)
+                    {
+                        sm.Switch(Waiting.Name);
+                    }
+                    break;
+                default: break;
+            }
+        };
+
+        Confirming.OnExit = (StateMachine sm) =>
+        {
+            Destroy(confirmPad.gameObject);
+        };
+
+        Waiting.OnEnter = (StateMachine sm) =>
+        {
+            SelectUnit(null);
+            RefreshAndDisplayUnitOperations(null);
+        };
+
+        Waiting.OnEvent = (UIEvent uiEvent, StateMachine sm) =>
+        {
+            switch (uiEvent.Type)
+            {
+                case UIEventType.Click:
+                    break;
+                case UIEventType.Confirm:
+                    break;
+                case UIEventType.NextTurn:
+                    int team = (int)uiEvent.Params[0];
+                    if (team == CurTeam)
+                    {
+                        sm.Switch(Idle.Name);
+                    }
+                    break;
+                default: break;
+            }
+        };
 
         playerSMs = new();
-        for (int i = 0; i < PlayerNum; i++)
+        foreach(var team in Teams)
         {
-            playerSMs.Add(new StateMachine(i));
+            playerSMs.Add(team, new StateMachine(team));
             foreach (var state in AllStates)
             {
-                playerSMs[i].AddNewState(state);
+                playerSMs[team].AddNewState(state);
             }
             // 同时只能有一个状态机在Idle，其他都在Waiting
-            if (i == CurPlayer)
+            if (team == CurTeam)
             {
-                playerSMs[i].Init("Idle");
+                playerSMs[team].Init(Idle.Name);
             }
             else
             {
-                playerSMs[i].Init("Waiting");
+                playerSMs[team].Init(Waiting.Name);
             }
+            int t = team;
+            RegisterUIEventHandler((UIEvent uIEvent) =>
+            {
+                playerSMs[t].OnEvent(uIEvent);
+            });
         }
 
-
+        foreach(var sm in playerSMs.Values)
+        {
+            Debug.Log($"SM {sm.Team} is at {sm.CurState.Name}");
+        }
     }
 
     #endregion
+
+    #region 交互回调
 
     public void OnTouchpadClicked(int row, int col)
     {
         Debug.Log($"Touchpad at {row}, {col} is clicked.");
         // curState.Event(new Vector2Int(row, col));
-        AddUIEvent(new UIEvent(UIEventType.Click, new Vector2Int(row, col)));
+        TriggerUIEvent(new UIEvent(UIEventType.Click, new Vector2Int(row, col)));
     }
 
-    public GameObject confirmPadPrefab;
+    public ConfirmPad confirmPadPrefab;
     private GameObject confirmPad; //行动确认按钮
 
     /// <summary>
     /// 由确定按钮调用，确定当前选中的操作
     /// </summary>
-    public void ConfirmOperation()
+    public void OnConfirmButtonClicked()
     {
-        var curOperationType = curActiveOperations[confirmingOperationPos];
-        switch (curOperationType)
-        {
-            case OperationType.Attack:
-                throw new Exception("尚未实现");
-            case OperationType.Move:
-
-                // 获取移动路径
-                PathFinder.PathNode curNode = curUnitMovableNodes.Find(node => node.Equals(confirmingOperationPos));
-                if (curNode == null)
-                    throw new Exception("curNode not in curUnitMovableNodes");
-                List<Vector2Int> path = new List<Vector2Int>();
-
-                while (curNode != null)
-                {
-                    path.Add(new(curNode.x, curNode.y));
-                    curNode = curNode.preNode;
-                }
-
-                // 在路径中删除单位当前位置
-                path.RemoveAt(path.Count - 1);
-
-                // 节点为倒序排列，所以需要将其反向
-                path.Reverse();
-
-                string s = "";
-                foreach (var n in path)
-                {
-                    s += n.ToString() + ' ';
-                }
-
-                Debug.Log("path: " + s);
-
-                TriggerUnitOperationEvent(activeUnit, OperationType.Move, confirmingOperationPos, path);
-                break;
-        }
-
-        AddUIEvent(new UIEvent(UIEventType.Confirm, null));
+        TriggerUIEvent(new UIEvent(UIEventType.Confirm, null));
     }
+
+    #endregion
 
     #endregion
 }

@@ -18,10 +18,10 @@ public class BattleUI : MonoBehaviour
     
     public Transform RightBottomTr;
     
-    private ArmyView armyView;
-    private TerrainView terrainView;
+    public ArmyView armyView;
+    public TerrainView terrainView;
 
-    private Text teamText;
+    public Text teamText;
     
     public void Awake()
     {
@@ -29,14 +29,12 @@ public class BattleUI : MonoBehaviour
         transform.Find("LeftTop").position = new Vector3(Screen.safeArea.xMin, Screen.safeArea.yMax);
         transform.Find("RightTop").position = new Vector3(Screen.safeArea.xMax, Screen.safeArea.yMax);
         transform.Find("RightBottom").position = new Vector3(Screen.safeArea.xMax, Screen.safeArea.yMin);
-        armyView = LTPanel.transform.Find("ArmyView").GetComponent<ArmyView>();
-        terrainView = LeftTopTr.Find("TerrainView").GetComponent<TerrainView>();
-        teamText = RightTopTr.Find("CurrentTeam").GetComponent<Text>();
     }
 
     private void Start()
     {
         BattleManager.Instance.RegisterUIEventHandler(OnUIEvent);
+        BattleManager.Instance.RegisterBattleEventHandler(OnBattleEvent);
         LTPanel.SetActive(false);
     }
 
@@ -55,13 +53,8 @@ public class BattleUI : MonoBehaviour
                 break;
             case BattleEventType.Attack:
                 break;
-            case BattleEventType.NextTurn:
-                int nextTeam = (int)battleEvent.Params[0];
-                teamText.text = $"當前隊伍：{nextTeam}（{BattleManager.TeamColorStrings[nextTeam]}）";
-                //TODO: 添加下一回合提示效果
-                break;
             default:
-                throw new ArgumentOutOfRangeException();
+                break;
         }
     }
     
@@ -70,7 +63,9 @@ public class BattleUI : MonoBehaviour
         switch (uiEvent.Type)
         {
             case UIEventType.Click:
-                var (i, j) = (ValueTuple<int, int>)uiEvent.Params[0];
+                var cord = (Vector2Int)uiEvent.Params[0];
+                int i = cord.x;
+                int j = cord.y;
                 if (lastClick == (i, j))
                 {
                     LTPanel.SetActive(false);
@@ -116,7 +111,12 @@ public class BattleUI : MonoBehaviour
                 }
 
                 break;
-
+            case UIEventType.Confirm:
+                break;
+            case UIEventType.NextTurn:
+                int nextTeam = (int)uiEvent.Params[0];
+                teamText.text = $"當前隊伍：{nextTeam}（{BattleManager.TeamColorStrings[nextTeam]}）";
+                break;
             default:
                 break;
         }

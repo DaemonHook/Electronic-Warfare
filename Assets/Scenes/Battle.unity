@@ -1966,8 +1966,8 @@ MonoBehaviour:
   Width: 10
   PlayerNum: 2
   TouchPad: {fileID: 3628635761543859104, guid: e86aaddff92494f26b98c9e32536fa45, type: 3}
-  PlayerTeam: 0
-  confirmPadPrefab: {fileID: 9077498721083314774, guid: b38ebbdfb55be4f67b1eeb1f06cd6f8f, type: 3}
+  Teams: 
+  confirmPadPrefab: {fileID: 3954571927970078730, guid: b38ebbdfb55be4f67b1eeb1f06cd6f8f, type: 3}
 --- !u!114 &1409099106
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2330,6 +2330,9 @@ MonoBehaviour:
   LTPanel: {fileID: 926531513}
   RightTopTr: {fileID: 1005309561}
   RightBottomTr: {fileID: 1844024746}
+  armyView: {fileID: 1473029266}
+  terrainView: {fileID: 95393390}
+  teamText: {fileID: 242302542}
 --- !u!1 &1844024745
 GameObject:
   m_ObjectHideFlags: 0

@@ -29,13 +29,10 @@ public class TouchPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
     public Color BuildableColor;
 
     private GameObject SelectGO;
-    private GameObject ControlGO;
 
     private void Awake()
     {
         SelectGO = transform.Find("Select").gameObject;
-        ControlGO = transform.Find("Control").gameObject;
-        controlSp = GetComponent<SpriteRenderer>();
         BattleManager.Instance.RegisterUIEventHandler(ReceiveUIEvent);
     }
 
@@ -51,8 +48,9 @@ public class TouchPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
         switch (uiEvent.Type)
         {
             case UIEventType.Click:
-                var (x, y) = ((int, int))uiEvent.Params[0];
-
+                Vector2Int clickedCord = (Vector2Int)uiEvent.Params[0];
+                int x = clickedCord.x;
+                int y = clickedCord.y;
                 if (x == Row && y == Col)
                 {
                     SelectGO.SetActive(true);
@@ -68,30 +66,27 @@ public class TouchPad : MonoBehaviour, IPointerUpHandler, IPointerDownHandler
         }
     }
 
-    private void ChangeColor(Color color)
-    {
-        GetComponent<SpriteRenderer>().color = color;
-    }
 
     #region 控制显示样式
 
-    private SpriteRenderer controlSp;
+    public SpriteRenderer ControlSpriteRenderer;
     
     public void SetControlState(ControlState state)
     {
         switch (state)
         {
             case ControlState.None:
-                controlSp.color = Color.clear;
+                ControlSpriteRenderer.color = Color.clear;
                 break;
             case ControlState.Moveable:
-                controlSp.color = MovableColor;
+                Debug.Log($"TouchPad at {Row}, {Col} set control state: {state}");
+                ControlSpriteRenderer.color = MovableColor;
                 break;
             case ControlState.Attackable:
-                controlSp.color = AttackableColor;
+                ControlSpriteRenderer.color = AttackableColor;
                 break;
             case ControlState.Buildable:
-                controlSp.color = BuildableColor;
+                ControlSpriteRenderer.color = BuildableColor;
                 break;
             default: break;
         }
