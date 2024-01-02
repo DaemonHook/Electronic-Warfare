@@ -31,12 +31,12 @@ public class BattleManager : MonoBehaviour
     public string MapName;
 
     public TiledMap Map { get; set; }
-    public int Height;  //战场大小
-    public int Width;   //战场大小
+    public int Height; //战场大小
+    public int Width; //战场大小
 
     //TODO: 增加玩家数量
-    public int PlayerNum = 2;   // 玩家数量
-    public int CurPlayer { get; set; } = 0;   // 当前的玩家
+    public int PlayerNum = 2; // 玩家数量
+    public int CurPlayer { get; set; } = 0; // 当前的玩家
 
     public Vector2Int BattleFieldSize
     {
@@ -221,7 +221,11 @@ public class BattleManager : MonoBehaviour
 
     public int PlayerTeam = 0;
     public int CurrentTeam { get; set; } = 1; //当前行动的队伍
-    public int TeamCount { get { return PlayerNum; } }
+
+    public int TeamCount
+    {
+        get { return PlayerNum; }
+    }
 
     public Dictionary<int, List<UnitTile>> TeamUnits;
 
@@ -408,7 +412,7 @@ public class BattleManager : MonoBehaviour
     {
         Debug.Log($"uievent type:{uiEvent.Type}");
 
-        foreach(var sm in playerSMs)
+        foreach (var sm in playerSMs)
         {
             sm.OnEvent(uiEvent);
         }
@@ -419,8 +423,6 @@ public class BattleManager : MonoBehaviour
 
     #region 玩家操作处理
 
-
-
     private bool UnitCanPass(int posX, int posY)
     {
         if (posX < 0 || posX >= Width || posY < 0 || posY >= Height) return false;
@@ -430,15 +432,16 @@ public class BattleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 显示单位可执行的行动（若为null则为清空显示）
+    /// 刷新和显示单位可执行的行动（若为null则为清空显示）
     /// </summary>
-    private void DisplayUnitOperations(UnitTile unitTile)
+    private void RefreshAndDisplayUnitOperations(UnitTile unitTile)
     {
         // 清除之前的显示
         foreach (var p in curActiveOperations.Keys)
         {
             TouchPads[p.x, p.y].SetControlState(ControlState.None);
         }
+
         curActiveOperations.Clear();
 
         // 获取可行动作
@@ -507,9 +510,15 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     private List<PathFinder.PathNode> curUnitMovableNodes;
 
+    /// <summary>
+    /// 当前活跃单位可以执行的操作
+    /// </summary>
     private Dictionary<Vector2Int, OperationType> curActiveOperations = new();
 
-    private Vector2Int curOperationPos;
+    /// <summary>
+    /// 待确认的操作位置
+    /// </summary>
+    private Vector2Int confirmingOperationPos;
 
     /// <summary>
     /// 选择一个单位
@@ -517,9 +526,9 @@ public class BattleManager : MonoBehaviour
     /// <param name="unitTile"></param>
     private void SelectUnit(UnitTile unitTile)
     {
-        DisplayUnitOperations(null);
+        RefreshAndDisplayUnitOperations(null);
         activeUnit = unitTile;
-        DisplayUnitOperations(activeUnit);
+        RefreshAndDisplayUnitOperations(activeUnit);
     }
 
     /*
@@ -564,33 +573,32 @@ public class BattleManager : MonoBehaviour
          */
         Idle.OnEnter = (StateMachine sm) =>
         {
-            Debug.Log($"sm of {sm.Team} entered Idle");
-            DisplayUnitOperations(null);
+            RefreshAndDisplayUnitOperations(null);
         };
 
-        Idle.OnEvent = (UIEvent uievent, StateMachine sm) =>
+        Idle.OnEvent = (UIEvent uiEvent, StateMachine sm) =>
         {
-            switch (uievent.Type)
+            switch (uiEvent.Type)
             {
                 case UIEventType.Click:
                     /*
                      * Idle状态，若点击了单位则刷新活跃单位，若活跃单位属于本队伍
                      * 则进入Active模式
                      */
-                    SelectUnit(GetClickedUnit(uievent));
+                    SelectUnit(GetClickedUnit(uiEvent));
                     if (activeUnit != null)
                     {
-                        if (activeUnit.CurrentProperty.team == 
-                            sm.Team)
+                        if (activeUnit.CurrentProperty.team == sm.Team)
                         {
                             sm.Switch("Active");
                         }
                     }
+
                     break;
                 case UIEventType.Confirm:
                     throw new ArgumentOutOfRangeException();
                 case UIEventType.NextTurn:
-                    int nextTeam = (int)uievent.Params[0];
+                    int nextTeam = (int)uiEvent.Params[0];
                     if (nextTeam != CurrentTeam)
                     {
                         sm.Switch("Waiting");
@@ -605,30 +613,57 @@ public class BattleManager : MonoBehaviour
          */
         Active.OnEnter = (StateMachine sm) =>
         {
-            Debug.Log($"sm of {sm.Team} entered Active");
-            DisplayUnitOperations(activeUnit);
+            Debug.Log($"active unit is {activeUnit.name}");
+            RefreshAndDisplayUnitOperations(activeUnit);
         };
 
-        Active.OnEvent = (UIEvent uievent, StateMachine sm) =>
+        Active.OnEvent = (UIEvent uiEvent, StateMachine sm) =>
         {
-            switch (uievent.Type)
+            switch (uiEvent.Type)
             {
                 case UIEventType.Click:
-                                        
+                    /*
+                     * 对于Active状态的点击事件
+                     */
+                    Vector2Int clickedCord = (Vector2Int)uiEvent.Params[0];
+                    if (curActiveOperations.ContainsKey(clickedCord))
+                    {
+                        // 若点击的是可行目标，进入确认状态
+                        confirmingOperationPos = clickedCord;
+                        sm.Switch("Confirm");
+                    }
+                    else
+                    {
+                        // 否则，获取点击的单位
+                        var clickedUnit = GetClickedUnit(uiEvent);
+                        if (clickedUnit != null && clickedUnit != activeUnit)
+                        {
+                            SelectUnit(clickedUnit);
+                            sm.Switch("Active");
+                        }
+                        else
+                        {
+                            // 若没有点击到单位，取消选择，进入Idle状态
+                            sm.Switch("Idle");
+                        }
+                    }
+
                     break;
                 case UIEventType.Confirm:
                     throw new ArgumentOutOfRangeException();
                 case UIEventType.NextTurn:
-                    int nextTeam = (int)uievent.Params[0];
+                    int nextTeam = (int)uiEvent.Params[0];
                     if (nextTeam != CurrentTeam)
                     {
                         sm.Switch("Waiting");
                     }
+
                     break;
             }
         };
 
-
+        Confirming.OnEnter = (StateMachine sm) => {
+        };
 
 
         playerSMs = new();
@@ -638,6 +673,15 @@ public class BattleManager : MonoBehaviour
             foreach (var state in AllStates)
             {
                 playerSMs[i].AddNewState(state);
+            }
+            // 同时只能有一个状态机在Idle，其他都在Waiting
+            if (i == CurPlayer)
+            {
+                playerSMs[i].Init("Idle");
+            }
+            else
+            {
+                playerSMs[i].Init("Waiting");
             }
         }
 
@@ -661,7 +705,7 @@ public class BattleManager : MonoBehaviour
     /// </summary>
     public void ConfirmOperation()
     {
-        var curOperationType = curActiveOperations[curOperationPos];
+        var curOperationType = curActiveOperations[confirmingOperationPos];
         switch (curOperationType)
         {
             case OperationType.Attack:
@@ -669,7 +713,7 @@ public class BattleManager : MonoBehaviour
             case OperationType.Move:
 
                 // 获取移动路径
-                PathFinder.PathNode curNode = curUnitMovableNodes.Find(node => node.Equals(curOperationPos));
+                PathFinder.PathNode curNode = curUnitMovableNodes.Find(node => node.Equals(confirmingOperationPos));
                 if (curNode == null)
                     throw new Exception("curNode not in curUnitMovableNodes");
                 List<Vector2Int> path = new List<Vector2Int>();
@@ -694,9 +738,10 @@ public class BattleManager : MonoBehaviour
 
                 Debug.Log("path: " + s);
 
-                TriggerUnitOperationEvent(activeUnit, OperationType.Move, curOperationPos, path);
+                TriggerUnitOperationEvent(activeUnit, OperationType.Move, confirmingOperationPos, path);
                 break;
         }
+
         AddUIEvent(new UIEvent(UIEventType.Confirm, null));
     }
 

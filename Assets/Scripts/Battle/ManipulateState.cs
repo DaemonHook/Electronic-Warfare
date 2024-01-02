@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEngine;
 
 /// <summary>
 /// 状态机中的状态
@@ -56,6 +57,7 @@ public class StateMachine
 
     public void Switch(string newStateName)
     {
+        Debug.Log($"sm of {Team} entered {newStateName}");
         CurState.OnExit?.Invoke(this);
         CurState = StateDic[newStateName];
         CurState.OnEnter?.Invoke(this);
