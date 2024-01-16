@@ -25,7 +25,7 @@ public class BattleCamera : MonoBehaviour
     [Header("移动容差")] public float tolerance;
 
     [Header("判断是否在拖动状态的阈值")] public float IndragThreshold;
-    
+
     public enum MoveMode
     {
         cam,
@@ -46,7 +46,7 @@ public class BattleCamera : MonoBehaviour
     Vector3 startMousePosition = Vector3.zero;
 
     //速度衰減率
-    [Header("惯性滑动缩减率")] public float decelerationRate = 0.5f;
+    [Header("惯性滑动缩减率")] public float decelerationRate = 0.1f;
 
     //摄像机
     public Camera m_camera;
@@ -138,5 +138,10 @@ public class BattleCamera : MonoBehaviour
     {
         Instance = this;
         m_camera = GetComponent<Camera>();
+#if UNITY_STANDALONE || UNITY_EDITOR
+        decelerationRate = 0.0f;
+#elif UNITY_IOS || UNITY_ANDROID
+        decelerationRate = 0.1f;
+#endif
     }
 }

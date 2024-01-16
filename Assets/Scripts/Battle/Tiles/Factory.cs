@@ -38,7 +38,7 @@ public class Factory : MonoBehaviour
     public GameObject ObjectFactory(GameObject prefab, int x, int y, BlockType blockType)
     {
         var newGO = GameObject.Instantiate(prefab, ObjectParent);
-        var tt = newGO.AddComponent<TerrainTile>();
+        var tt = newGO.AddComponent<ObjectTile>();
         tt.Init(x, y, blockType);
         newGO.GetComponent<SpriteRenderer>().sortingLayerName = "Object";
         newGO.SetActive(true);

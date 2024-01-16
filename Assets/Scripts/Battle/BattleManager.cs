@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Design;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -166,15 +167,14 @@ public class BattleManager : MonoBehaviour
                 {
                     if (!TeamUnits.ContainsKey(Units[i, j].CurrentProperty.team))
                     {
-                        Teams.Add(Units[i, j].CurrentProperty.team);
+                        teamsOnMap.Add(Units[i, j].CurrentProperty.team);
                         TeamUnits.Add(Units[i, j].CurrentProperty.team, new());
                     }
                     TeamUnits[Units[i, j].CurrentProperty.team].Add(Units[i, j]);
                 }
             }
         }
-        Teams.Sort();
-        PlayerNum = Teams.Count;
+        PlayerNum = teamsOnMap.Count;
         Debug.Log($"共{PlayerNum}位玩家");
     }
 
@@ -217,30 +217,29 @@ public class BattleManager : MonoBehaviour
     #endregion
 
     #region 队伍系统
-
+    
+    public List<int> teamsOnMap = new();
+    
     private int curTeamIndex = 0;
-    public int CurTeam
-    {
-        get
-        {
-            return Teams[curTeamIndex];
-        }
-    }
+    
+    public int CurTeam => teamsOnMap[curTeamIndex];
 
     /// <summary>
-    /// 轮到下一个玩家行动（不操作状态机）
+    /// 下一玩家开始行动
     /// </summary>
-    public void ToNextTeam()
+    public void GoNextTeam()
     {
-        curTeamIndex = (curTeamIndex + 1) % TeamCount;
+        curTeamIndex = (curTeamIndex + 1) % teamsOnMap.Count;
+    }
+    
+    /// <summary>
+    /// 获取下一个玩家序号
+    /// </summary>
+    public int NextTeam()
+    {
+        return teamsOnMap[(curTeamIndex + 1) % teamsOnMap.Count];
     }
 
-    public int GetNextTeam()
-    {
-        return Teams[(curTeamIndex + 1) % TeamCount];
-    }
-
-    public List<int> Teams = new();
     public int TeamCount
     {
         get { return PlayerNum; }
@@ -251,8 +250,8 @@ public class BattleManager : MonoBehaviour
     public static string[] TeamColorStrings =
     {
         "白色",
-        "红色",
         "蓝色",
+        "红色",
         "黄色",
     };
 
@@ -262,7 +261,7 @@ public class BattleManager : MonoBehaviour
     public void OnNextTurnButton()
     {
         Debug.Log($"OnNextTurnButton");
-        int nextTeam = GetNextTeam();
+        int nextTeam = NextTeam();
         TriggerBattleEvent(new BattleEvent(BattleEventType.NextTurn, nextTeam));
         TriggerUIEvent(new UIEvent(UIEventType.NextTurn, nextTeam));
     }
@@ -449,7 +448,8 @@ public class BattleManager : MonoBehaviour
             case UIEventType.Confirm:
                 break;
             case UIEventType.NextTurn:
-                ToNextTeam();
+                Debug.Log($"轮到队伍 {uiEvent.Params[0]} 行动了");
+                GoNextTeam();
                 break;
         }
     }
@@ -518,10 +518,12 @@ public class BattleManager : MonoBehaviour
             {
                 //TODO
             }
+
+            Debug.Log($"{string.Join(", ", activeOperations.Keys.ToArray())}");
             // 显示可行动作
             foreach (var (pos, type) in activeOperations)
             {
-                Debug.Log($"{pos}, {type}");
+                // Debug.Log($"{pos}, {type}");
                 //TODO 添加其他动作显示
                 switch (type)
                 {
@@ -617,6 +619,7 @@ public class BattleManager : MonoBehaviour
          */
         Idle.OnEnter = (StateMachine sm) =>
         {
+            Debug.Log($"玩家{sm.Team}的状态机进入Idle状态");
             activeUnit = null;
             RefreshAndDisplayUnitOperations(null);
         };
@@ -644,9 +647,13 @@ public class BattleManager : MonoBehaviour
                     throw new ArgumentOutOfRangeException();
                 case UIEventType.NextTurn:
                     int nextTeam = (int)uiEvent.Params[0];
-                    if (nextTeam != CurTeam)
+                    if (nextTeam != sm.Team)
                     {
-                        sm.Switch("Waiting");
+                        sm.Switch(Waiting.Name);
+                    }
+                    else
+                    {
+                        sm.Switch(Idle.Name);
                     }
                     break;
                 default: break;
@@ -658,7 +665,7 @@ public class BattleManager : MonoBehaviour
          */
         Active.OnEnter = (StateMachine sm) =>
         {
-            Debug.Log($"进入Active状态 {activeUnit}");
+            Debug.Log($"玩家{sm.Team}的状态机进入Active状态");
             RefreshAndDisplayUnitOperations(activeUnit);
         };
 
@@ -697,9 +704,13 @@ public class BattleManager : MonoBehaviour
                     throw new ArgumentOutOfRangeException();
                 case UIEventType.NextTurn:
                     int nextTeam = (int)uiEvent.Params[0];
-                    if (nextTeam != CurTeam)
+                    if (nextTeam != sm.Team)
                     {
                         sm.Switch(Waiting.Name);
+                    }
+                    else
+                    {
+                        sm.Switch(Idle.Name);
                     }
                     break;
                 default: break;
@@ -708,7 +719,7 @@ public class BattleManager : MonoBehaviour
 
         Confirming.OnEnter = (StateMachine sm) =>
         {
-            Debug.Log($"confirming operation at {confirmingOperationPos}");
+            Debug.Log($"玩家{sm.Team}的状态机进入Confirming状态");
             confirmPad = Instantiate(confirmPadPrefab.gameObject, transform);
             confirmPad.transform.position = GetRealWorldPosition(confirmingOperationPos)
                 + new Vector3(0f, 1f);
@@ -763,9 +774,13 @@ public class BattleManager : MonoBehaviour
                     break;
                 case UIEventType.NextTurn:
                     int nextTeam = (int)uiEvent.Params[0];
-                    if (nextTeam != CurTeam)
+                    if (nextTeam != sm.Team)
                     {
                         sm.Switch(Waiting.Name);
+                    }
+                    else
+                    {
+                        sm.Switch(Idle.Name);
                     }
                     break;
                 default: break;
@@ -779,6 +794,7 @@ public class BattleManager : MonoBehaviour
 
         Waiting.OnEnter = (StateMachine sm) =>
         {
+            Debug.Log($"玩家{sm.Team}的状态机进入Waiting状态");
             SelectUnit(null);
             RefreshAndDisplayUnitOperations(null);
         };
@@ -792,8 +808,12 @@ public class BattleManager : MonoBehaviour
                 case UIEventType.Confirm:
                     break;
                 case UIEventType.NextTurn:
-                    int team = (int)uiEvent.Params[0];
-                    if (team == CurTeam)
+                    int nextTeam = (int)uiEvent.Params[0];
+                    if (nextTeam != sm.Team)
+                    {
+                        sm.Switch(Waiting.Name);
+                    }
+                    else
                     {
                         sm.Switch(Idle.Name);
                     }
@@ -803,7 +823,7 @@ public class BattleManager : MonoBehaviour
         };
 
         playerSMs = new();
-        foreach (var team in Teams)
+        foreach (var team in teamsOnMap)
         {
             playerSMs.Add(team, new StateMachine(team));
             foreach (var state in AllStates)
@@ -819,10 +839,9 @@ public class BattleManager : MonoBehaviour
             {
                 playerSMs[team].Init(Waiting.Name);
             }
-            int t = team;
             RegisterUIEventHandler((UIEvent uIEvent) =>
             {
-                playerSMs[t].OnEvent(uIEvent);
+                playerSMs[team].OnEvent(uIEvent);
             });
         }
 

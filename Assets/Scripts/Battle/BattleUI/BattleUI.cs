@@ -21,7 +21,7 @@ public class BattleUI : MonoBehaviour
     public ArmyView armyView;
     public TerrainView terrainView;
 
-    public Text teamText;
+    public Text CurTeamText;
     
     public void Awake()
     {
@@ -83,7 +83,7 @@ public class BattleUI : MonoBehaviour
                 {
                     terrainSprite = terrainGO.GetComponent<SpriteRenderer>().sprite;
                 }
-
+                
                 terrainView.SetTerrainImage(terrainSprite);
 
 
@@ -94,7 +94,7 @@ public class BattleUI : MonoBehaviour
                 }
 
                 terrainView.SetObjectImage(objectSprite);
-
+                Debug.Log($"objectGo: {objectGO} objectSprite: {objectSprite}");
                 if (unitGO != null)
                 {
                     Debug.Log($"show unit info at {i}, {j}");
@@ -114,7 +114,8 @@ public class BattleUI : MonoBehaviour
                 break;
             case UIEventType.NextTurn:
                 int nextTeam = (int)uiEvent.Params[0];
-                teamText.text = $"当前队伍：{nextTeam}（{BattleManager.TeamColorStrings[nextTeam]}）";
+                Debug.Log($"更新队伍为：{BattleManager.TeamColorStrings[nextTeam]}");
+                CurTeamText.text = $"当前行动：{BattleManager.TeamColorStrings[nextTeam]}";
                 break;
             default:
                 break;

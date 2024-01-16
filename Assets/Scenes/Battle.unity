@@ -839,7 +839,7 @@ MonoBehaviour:
   upRight: {x: 0, y: 0}
   tolerance: 3
   IndragThreshold: 0.1
-  decelerationRate: 0.1
+  decelerationRate: 0
   m_camera: {fileID: 0}
   m_moveMode: 1
 --- !u!114 &812873384
@@ -1551,7 +1551,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u5F53\u524D\u961F\u4F0D\uFF1A1\uFF08\u84DD\u8272\uFF09"
+  m_Text: "\u5F53\u524D\u884C\u52A8\uFF1A\u84DD\u8272"
 --- !u!222 &1089149409
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1966,7 +1966,7 @@ MonoBehaviour:
   Width: 10
   PlayerNum: 2
   TouchPad: {fileID: 3628635761543859104, guid: e86aaddff92494f26b98c9e32536fa45, type: 3}
-  Teams: 
+  teamsOnMap: 
   confirmPadPrefab: {fileID: 3954571927970078730, guid: b38ebbdfb55be4f67b1eeb1f06cd6f8f, type: 3}
 --- !u!114 &1409099106
 MonoBehaviour:
@@ -2332,7 +2332,7 @@ MonoBehaviour:
   RightBottomTr: {fileID: 1844024746}
   armyView: {fileID: 1473029266}
   terrainView: {fileID: 95393390}
-  teamText: {fileID: 242302542}
+  CurTeamText: {fileID: 1089149408}
 --- !u!1 &1844024745
 GameObject:
   m_ObjectHideFlags: 0
