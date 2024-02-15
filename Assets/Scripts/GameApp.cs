@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -14,9 +15,9 @@ public static class GameApp
 
     public static List<string> GetMapList()
     {
-        var mapTAList = Resources.LoadAll<TextAsset>($"{ModuleName}/Maps");
+        var mapTaList = Resources.LoadAll<TextAsset>($"{ModuleName}/Maps") ?? throw new ArgumentNullException("Resources.LoadAll<TextAsset>($\"{ModuleName}/Maps\")");
         return new List<string>(
-            from mapTA in mapTAList select Path.GetFileNameWithoutExtension(mapTA.name));
+            from mapTa in mapTaList select Path.GetFileNameWithoutExtension(mapTa.name));
     }
 
     public static void EnterMap(string mapName)
