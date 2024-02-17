@@ -19,4 +19,7 @@ static class Util
         }
         action();
     }
+
+    public static int Infinity = int.MaxValue;
+    public static int MinusInfinity = int.MinValue;
 }

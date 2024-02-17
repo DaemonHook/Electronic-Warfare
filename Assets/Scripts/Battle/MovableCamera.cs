@@ -3,9 +3,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEngine;
-using DG.Tweening;
 
+/// <summary>
+/// 可移动的镜头
+/// </summary>
 public class MovableCamera : MonoBehaviourSingleton<MovableCamera>
 {
     private Camera thisCamera;
@@ -125,7 +126,7 @@ public class MovableCamera : MonoBehaviourSingleton<MovableCamera>
         upRight = new Vector2(width - 0.5f, height - 0.5f);
     }
 
-    private void Awake()
+    public override void Awake()
     {
         base.Awake();
         m_camera = GetComponent<Camera>();

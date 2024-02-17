@@ -16,7 +16,7 @@ public class MonoBehaviourSingleton<T> : MonoBehaviour where T : MonoBehaviourSi
         private set;
     }
 
-    public void Awake()
+    public virtual void Awake()
     {
         I = this as T;
     }

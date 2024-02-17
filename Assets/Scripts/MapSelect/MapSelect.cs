@@ -11,13 +11,13 @@ public class MapSelect : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        mapList = GameApp.GetMapList();
-        foreach (var mapName in mapList)
-        {
-            var newGO = Instantiate(levelGO, transform);
-            newGO.GetComponent<Level>().Init(mapName, 
-                Resources.Load<Sprite>($"Texture/{mapName}"));
-        }
+        // mapList = GameApp.GetMapList();
+        // foreach (var mapName in mapList)
+        // {
+        //     var newGO = Instantiate(levelGO, transform);
+        //     newGO.GetComponent<Level>().Init(mapName, 
+        //         Resources.Load<Sprite>($"Texture/{mapName}"));
+        // }
     }
 
     //void CreateLevelPanel()

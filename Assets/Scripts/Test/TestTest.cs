@@ -7,17 +7,26 @@ using UnityEditor;
 
 namespace Test
 {
+    public class MyClass
+    {
+        public void PrintClassName()
+        {
+            Console.WriteLine("Class name: " + typeof(MyClass).Name);
+        }
+    }
     [TestFixture]
     public class TestTest
     {
         [Test]
         public void LoadFromFile()
         {
-            var assetBundle = AssetBundle.LoadFromFile(ResourceConfig.BundlePath + "/default");
-            var t = assetBundle.LoadAsset<TextAsset>("meta").text;
-            Debug.Log(t);
-            PropertyLoader propertyLoader = new PropertyLoader(new StringReader(t));
-            Debug.Log(propertyLoader.GetProperty("root"));
+            // var asset = AssetBundle.LoadFromFile(ResourceConfig.BundlePath);
+            // var manifest = asset.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+            // var allAssetBundles = manifest.GetAllAssetBundles();
+            // foreach (var allAssetBundle in allAssetBundles)
+            // {
+            //     Debug.Log(allAssetBundle);
+            // }
         }
     }
 }

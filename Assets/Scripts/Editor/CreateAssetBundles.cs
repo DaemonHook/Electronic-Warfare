@@ -16,8 +16,11 @@ public class CreateAssetBundles
 #if UNITY_IOS
         BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.iOS);
 #elif UNITY_ANDROID
-            
         BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.Android);
+#elif UNITY_STANDALONE_OSX
+        BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.StandaloneOSX);
+#elif UNITY_STANDALONE_WIN
+        BuildPipeline.BuildAssetBundles(dir, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
 #else
         Debug.LogError("Invalid Build target");
 #endif

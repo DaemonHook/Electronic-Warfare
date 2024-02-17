@@ -8,8 +8,8 @@ public class ButtonController : MonoBehaviour
     public void Onclick()
     {
         var button = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
-        var maplist = GameApp.GetMapList();
-        int map = maplist.IndexOf(mapName);
-        GameApp.EnterMap(maplist[map]);
+        // var maplist = GameApp.GetMapList();
+        // int map = maplist.IndexOf(mapName);
+        // GameApp.EnterMap(maplist[map]);
     }
 }
