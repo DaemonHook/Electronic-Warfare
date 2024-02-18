@@ -42,6 +42,13 @@ public class GameApp: MonoBehaviourSingleton<GameApp>
     {
         Debug.Log("InitBaseManagers");
         BundleManager.I.InitManager();
+        EventManager.I.InitManager();
+        
+        BundleManager.I.LoadBundle("default", () =>
+        {
+            Debug.Log("加载默认 bundle");
+        });
+        
         
     }
 
@@ -50,5 +57,10 @@ public class GameApp: MonoBehaviourSingleton<GameApp>
         // 保证 GameApp 的全局存在
         DontDestroyOnLoad(this);
         InitBaseManagers();
+    }
+
+    private void StartGame()
+    {
+        
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +14,8 @@ public class BundleManager : BaseManager<BundleManager>
 #endif
 
     private string[] allAssetBundles;
+
+    public string CurrentBundle { get; set; }
 
     /// <summary>
     /// 已经被加载的 bundle
@@ -38,12 +42,12 @@ public class BundleManager : BaseManager<BundleManager>
         {
             Debug.LogError("没有默认包，无法加载游戏");
         }
-        
+
         // 先加载 default 包
-        LoadBundle("default");
+        // LoadBundle("default");
     }
 
-    public void LoadBundle(string bundleName)
+    public void LoadBundle(string bundleName, Action onComplete = null)
     {
         if (!allAssetBundles.Contains(bundleName))
         {
@@ -56,8 +60,17 @@ public class BundleManager : BaseManager<BundleManager>
             LoadBundle(bundleName);
         }
 
-        loadedBundles.Add(bundleName, AssetBundle.LoadFromFile(Path.Combine(ResourceConfig.BundlePath, bundleName)));
-        Debug.Log("加载了 " + bundleName +  " bundle");
+        StartCoroutine(LoadBundleCoroutine(bundleName, onComplete));
+        // loadedBundles.Add(bundleName, AssetBundle.LoadFromFileAsync(Path.Combine(ResourceConfig.BundlePath, bundleName)));
+    }
+
+    IEnumerator LoadBundleCoroutine(string bundleName, Action onComplete)
+    {
+        var req = AssetBundle.LoadFromFileAsync(Path.Combine(ResourceConfig.BundlePath, bundleName));
+        yield return req;
+        loadedBundles.Add(bundleName, req.assetBundle);
+        onComplete?.Invoke();
+        Debug.Log("加载了 " + bundleName + " bundle");
     }
 
     public override void InitManager()

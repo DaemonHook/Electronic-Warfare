@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Resources;
 using NUnit.Framework;
@@ -17,9 +18,11 @@ namespace Test
     [TestFixture]
     public class TestTest
     {
+       
         [Test]
         public void LoadFromFile()
         {
+            
             // var asset = AssetBundle.LoadFromFile(ResourceConfig.BundlePath);
             // var manifest = asset.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
             // var allAssetBundles = manifest.GetAllAssetBundles();
