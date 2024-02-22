@@ -43,10 +43,11 @@ public class GameApp: MonoBehaviourSingleton<GameApp>
         Debug.Log("InitBaseManagers");
         BundleManager.I.InitManager();
         EventManager.I.InitManager();
-        
+        ViewManager.I.InitManager();
         BundleManager.I.LoadBundle("default", () =>
         {
             Debug.Log("加载默认 bundle");
+            
         });
         
         
