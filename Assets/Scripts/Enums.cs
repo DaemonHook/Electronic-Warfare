@@ -1,9 +1,9 @@
 ﻿using System;
 
 /// <summary>
-/// 单位朝向
+/// 支持4个方向
 /// </summary>
-public enum Orientation
+public enum Direction
 {
     LEFT,
     RIGHT,

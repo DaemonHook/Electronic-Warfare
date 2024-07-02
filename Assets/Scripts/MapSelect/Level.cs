@@ -15,7 +15,6 @@ public class Level : MonoBehaviour
         this.mapName = mapName;
         this.mapImage = mapImage;
         transform.Find("MapImage").GetComponent<Image>().sprite = mapImage;
-        transform.Find("MapImage").GetComponent<ButtonController>().mapName = mapName;
         transform.Find("MapName").GetComponent<Text>().text = mapName;
     }
 
