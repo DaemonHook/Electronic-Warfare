@@ -4,8 +4,8 @@ using UnityEngine;
 /// <summary>
 /// 继承自 MonoBehaviour 的单例
 /// </summary>
-public class MonoBehaviourSingleton<T> : MonoBehaviour where T : MonoBehaviourSingleton<T> 
-// 保证可以在这里使用MonoBehaviourSingleton的方法
+public class MBSingleton<T> : MonoBehaviour where T : MonoBehaviour
+// 保证可以在这里使用MBSingleton的方法
 {
     /// <summary>
     /// 访问单例的唯一接口

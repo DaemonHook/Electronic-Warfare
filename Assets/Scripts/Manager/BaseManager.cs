@@ -7,7 +7,7 @@ using UnityEngine;
 /// 所有的 Manager 都应该挂在 GameApp 上
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class BaseManager<T> : MonoBehaviourSingleton<T> where T : BaseManager<T>
+public class BaseManager<T> : MBSingleton<T> where T : BaseManager<T>
 {
     public string ManagerName { get; protected set; }
 

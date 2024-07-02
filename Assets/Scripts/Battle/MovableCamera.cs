@@ -7,7 +7,7 @@ using Unity.VisualScripting;
 /// <summary>
 /// 可移动的镜头
 /// </summary>
-public class MovableCamera : MonoBehaviourSingleton<MovableCamera>
+public class MovableCamera : MBSingleton<MovableCamera>
 {
     private Camera thisCamera;
 
